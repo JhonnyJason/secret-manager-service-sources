@@ -1,0 +1,14 @@
+{
+  "name": "Sample Manifest Sample",
+  "short_name": "Sample",
+  "icons": [{
+    "src": "img/sample-icon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }],
+  "lang": "en-US",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "white",
+  "theme_color": "white"
+}

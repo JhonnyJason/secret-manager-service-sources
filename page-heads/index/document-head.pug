@@ -1,0 +1,14 @@
+doctype html
+html
+    head
+        meta(charset='utf-8')
+        title Sample Page Head
+        link(rel='manifest' href='sample-manifest.json')
+        link(rel='icon' href='favicon.ico')
+        link(rel='apple-touch-icon' sizes='180x180' href='img/sample-icon.png')
+        meta(name='description', content='Sample Description in the Sample Page Head')
+        meta(name='viewport', content='width=device-width, initial-scale=1.0')
+        
+        include styles-include.pug
+        include scripts-include.pug
+    include ../../source/index/indexbody.pug
