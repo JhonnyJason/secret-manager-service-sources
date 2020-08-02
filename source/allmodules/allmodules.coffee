@@ -3,6 +3,7 @@ import debugmodule from "./debugmodule"
 import persistentstatemodule from "./persistentstatemodule"
 import scimodule from "./scimodule"
 import secretstoremodule from "./secretstoremodule"
+import securitymodule from "./securitymodule"
 import startupmodule from "./startupmodule"
 
 Modules = {
@@ -11,6 +12,7 @@ Modules = {
     persistentstatemodule,
     scimodule,
     secretstoremodule,
+    securitymodule,
     startupmodule,
 }
 

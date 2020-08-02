@@ -12,6 +12,7 @@ debugmodule.modulesToDebug =
     # persistentstatemodule: true
     scimodule: true
     secretstoremodule: true
+    securitymodule: true
     # startupmodule: true
 
 

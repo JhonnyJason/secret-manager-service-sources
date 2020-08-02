@@ -65,7 +65,7 @@ onAddNodeId = (req, res) ->
         data = req.body
         olog data
         
-        ## TODO security.authenticate(data)
+        security.authenticate(data)
         secretStore.addNodeId(data.publicKey)
 
         response.ok = true
