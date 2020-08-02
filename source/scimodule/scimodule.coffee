@@ -19,7 +19,8 @@ bodyParser = require('body-parser')
 ############################################################
 #region internalProperties
 cfg = null
-data = null
+secretStore = null
+security = null
 
 ############################################################
 app = null
@@ -29,7 +30,8 @@ app = null
 scimodule.initialize = () ->
     log "scimodule.initialize"
     cfg = allModules.configmodule
-    data = allModules.datahandlermodule
+    secretStore = allModules.secretstoremodule
+    security = allModules.securitymodule
 
     app = express()
     app.use bodyParser.urlencoded(extended: false)
@@ -62,7 +64,11 @@ onAddNodeId = (req, res) ->
     try
         data = req.body
         olog data
-        ##TODO implement
+        
+        ## TODO security.authenticate(data)
+        secretStore.addNodeId(data.publicKey)
+
+        response.ok = true
         res.send(response)
     catch err
         log "Error in onAddNodeId!"
@@ -76,7 +82,12 @@ onGetSecretSpace = (req, res) ->
     try
         data = req.body
         olog data
-        ##TODO implement
+
+        ## TODO security.authenticate(data)
+        space = secretStore.getSecretSpace(data.publicKey)
+
+        ## space = security.encrypt(JSON.stringify(space), data.publicKey) 
+        response.secretSpace = space
         res.send(response)
     catch err
         log "Error in onGetSecretSpace!"

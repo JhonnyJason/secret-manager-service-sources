@@ -9,4 +9,7 @@ configmodule.initialize = () ->
     log "configmodule.initialize"
     return
 
+############################################################
+configmodule.persistentStateRelativeBasePath = "../state"
+
 export default configmodule

@@ -9,7 +9,9 @@ debugmodule.initialize = () ->
 debugmodule.modulesToDebug = 
     unbreaker: true
     # configmodule: true
+    # persistentstatemodule: true
     scimodule: true
+    secretstoremodule: true
     # startupmodule: true
 
 
