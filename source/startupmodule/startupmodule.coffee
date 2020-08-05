@@ -16,7 +16,11 @@ startupmodule.initialize = () ->
 ############################################################
 startupmodule.serviceStartup = ->
     log "startupmodule.serviceStartup"
+    allModules.securitymodule.test()
+    process.exit(0)
+
     sci.prepareAndExpose()
+    
     return
 
 export default startupmodule

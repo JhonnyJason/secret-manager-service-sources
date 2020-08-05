@@ -83,10 +83,10 @@ onGetSecretSpace = (req, res) ->
         data = req.body
         olog data
 
-        ## TODO security.authenticate(data)
+        security.authenticate(data)
         space = secretStore.getSecretSpace(data.publicKey)
 
-        ## space = security.encrypt(JSON.stringify(space), data.publicKey) 
+        space = security.encrypt(JSON.stringify(space), data.publicKey) 
         response.secretSpace = space
         res.send(response)
     catch err
@@ -101,7 +101,10 @@ onGetSecret = (req, res) ->
     try
         data = req.body
         olog data
-        ##TODO implement
+
+        security.authenticate(data)
+        response.secret = secretStore.getSecret(data.publicKey, data.secretKey)
+
         res.send(response)
     catch err
         log "Error in onGetSecret!"
@@ -115,7 +118,12 @@ onSetSecret = (req, res) ->
     try
         data = req.body
         olog data
-        ##TODO implement
+
+        security.authenticate(data)
+        secret = security.encrypt(data.secret, data.publicKey)
+        secretStore.setSecret(data.publicKey, data.secretKey, secret)
+        
+        response.ok = true
         res.send(response)
     catch err
         log "Error in onSetSecret!"
