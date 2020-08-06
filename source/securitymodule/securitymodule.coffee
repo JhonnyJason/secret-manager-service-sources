@@ -12,6 +12,20 @@ print = (arg) -> console.log(arg)
 ############################################################
 #region sampleKeyPairs
 serverPriv = "5FE5F1D902D6B42E55B6E4E401E987C3F2BC7F95D33188863DE91760B7D58492"
+
+opensshpriv = """
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACC2miVG9g2q/dN1JpTV+N5mFhL2OGrf8HBvMBvNUbmtGgAAAJB5LjWzeS41
+    swAAAAtzc2gtZWQyNTUxOQAAACC2miVG9g2q/dN1JpTV+N5mFhL2OGrf8HBvMBvNUbmtGg
+    AAAEC9MC44MnM5nYOrrqrsIAW/GhXJ9/dZ06Q9Pzvl+k1duraaJUb2Dar903UmlNX43mYW
+    EvY4at/wcG8wG81Rua0aAAAACmxlbm55QG5vdmEBAgM=
+    -----END OPENSSH PRIVATE KEY-----
+    """
+opensshpub = """
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILaaJUb2Dar903UmlNX43mYWEvY4at/wcG8wG81Rua0a lenny@nova
+    """
+
 privone = """
     -----BEGIN PRIVATE KEY-----
     MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS
@@ -37,6 +51,8 @@ pubtwo = """
 ############################################################
 crypto = require("crypto")
 elliptic = require("elliptic")
+Ber = require('asn1').Ber
+sshpk = require("sshpk")
 
 ############################################################
 securitymodule.initialize = () ->
@@ -45,6 +61,93 @@ securitymodule.initialize = () ->
 
 ############################################################
 #region internalFunctions
+printTag = (reader) -> log "0x"+reader.peek().toString(16)
+
+
+stripKeyBanners = (fullKey) ->
+    fullKey = fullKey.replace(/\s+/g,"")
+    # log fullOpenSSLKey
+    tokens = fullKey.split("-")
+    
+    maxToken = ""
+    maxTokenSize = 0
+    for token in tokens
+        if maxTokenSize < token.length
+            maxTokenSize = token.length
+            maxToken = token
+    
+    # log maxToken
+    return maxToken
+
+readOpenSSHEd25519Key = (fullOpenSSHKey) ->
+
+    key = sshpk.parseKey(opensshpriv, "pem")
+    log " - - - - - "
+    log "openssh:"
+    log key.type
+    log key.size
+    log key.curve
+    log key.toString("pem")
+    log " - "
+    log key.source.part.A.data.toString("hex")
+    log key.source.part.k.data.toString("hex")
+
+    log " - - - - - "
+    log "openssl:" 
+    key = sshpk.parseKey(privone, "pem")
+    log key.type
+    log key.size
+    log key.curve
+    log key.toString("pem")
+    log " - " 
+    log key.source.part.A.data.toString("hex")
+    log key.source.part.k.data.toString("hex")
+
+    log " - - - - - "
+    log "selfparsed privone:"
+    actualKey = readOpenSSLEd25519Key(privone)
+    log actualKey
+    # olog key.source
+    process.exit(0)
+    # base64Key = stripKeyBanners(fullOpenSSHKey)
+    # buffer = Buffer.from(base64Key, "base64")
+
+    # log buffer.toString("hex")
+    
+    # reader = new Ber.Reader(buffer)
+    # printTag reader
+
+    return "asd"
+
+readOpenSSLEd25519Key = (fullOpenSSLKey) ->
+    base64Key = stripKeyBanners(fullOpenSSLKey)
+    buffer = Buffer.from(base64Key, "base64")
+
+    # log buffer.toString("hex")
+    
+    reader = new Ber.Reader(buffer);
+
+    if reader.peek() != 0x30 then throw new Error("Key does not Start with Sequence!")
+    reader.readSequence()
+    if reader.peek() != 0x2 then throw new Error("First data is not an Integer")
+    reader.readInt()
+    if reader.peek() != 0x30 then throw new Error("Second data is not a Sequence!")
+    reader.readSequence()    
+    if reader.peek() != 0x6 then throw new Error("Third data is not an Object Identifier!")
+    reader.readOID()
+    if reader.peek() != 0x4 then throw new Error("Fourth data is not an Octed String!")
+    buffer = Buffer.alloc(64)
+    buffer = reader.readString(Ber.OctedString, buffer)
+
+    readString = buffer.toString("hex")
+    # log readString
+    if readString.length == 68 then return readString.slice(4)
+    if readString.length == 64 then return readString
+    throw new Error("Read Private Key has invalid length of: " + readString.length)
+    return
+
+
+
 formatKey = (pubKey) ->
     return """
     -----BEGIN PUBLIC KEY-----
@@ -77,9 +180,48 @@ createSignature = (message) ->
 #region exposedFunctions
 securitymodule.test = ->
     log "securitymodule.test"
-    EC = elliptic.ec
-    ed25519 = new EC('ed25519')
+    # try privateKey = readOpenSSLEd25519Key(privone)
+    # catch err then log err
+
+    try otherPrivateKey = readOpenSSHEd25519Key(opensshpriv)
+    catch err then log err
+
+    log privateKey
+    process.exit(0)
+
+    # EC = elliptic.ec
+    # ed25519 = new EC('ed25519')
+
+    # nativeKey = crypto.generateKeyPair("ed25519")
+    # olog nativeKey
+
+    # process.exit(0)
+
+    # promisedKey = await new Promise (resovle, reject) ->
+    #     crypto.createPrivateKey("ed25519", null, (err, pub, priv) -> resolve({pub, priv}))
+    #     return
     
+    # olog promisedKey  
+
+    # process.exit(0)
+
+    # if (reader.peek() == Ber.)
+    #     log(reader.readInt());
+
+    #|Type(1byte)|Length(1byte)|Value(xbyte)|
+    #Type: |class(2bit)|form(1bit)|tag(5bit)|
+    # Type: 00 1 10000
+    # Type: 00 0 00001
+    
+    # reader = new Ber.Reader(Buffer.from([0x30, 0x03, 0x01, 0x01, 0x00]));
+    # reader.readSequence();
+
+    # log('Sequence len: ' + reader.length);
+    # if (reader.peek() == Ber.Boolean)
+    #     log(reader.readBoolean());
+
+    process.exit(0)
+
     # privoneBase64 = "MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS"
     # privtwoBase64 = "MC4CAQAwBQYDK2VwBCIEIABaG2DGL4WE9niHPbdZtbmPOufhkqEJIibW1mlYsfXT"
 
