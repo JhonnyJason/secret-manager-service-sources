@@ -11,6 +11,7 @@ print = (arg) -> console.log(arg)
 
 ############################################################
 #region sampleKeyPairs
+serverPriv = "5FE5F1D902D6B42E55B6E4E401E987C3F2BC7F95D33188863DE91760B7D58492"
 privone = """
     -----BEGIN PRIVATE KEY-----
     MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS
@@ -79,34 +80,59 @@ securitymodule.test = ->
     EC = elliptic.ec
     ed25519 = new EC('ed25519')
     
-    privoneBase64 = "MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS"
-    privtwoBase64 = "MC4CAQAwBQYDK2VwBCIEIABaG2DGL4WE9niHPbdZtbmPOufhkqEJIibW1mlYsfXT"
+    # privoneBase64 = "MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS"
+    # privtwoBase64 = "MC4CAQAwBQYDK2VwBCIEIABaG2DGL4WE9niHPbdZtbmPOufhkqEJIibW1mlYsfXT"
 
-    buffer = Buffer.from(privoneBase64, 'base64');
-    privoneHex = buffer.toString('hex');
-    buffer = Buffer.from(privtwoBase64, 'base64');
-    privtwoHex = buffer.toString("hex")
+    # buffer = Buffer.from(privoneBase64, 'base64');
+    # privoneHex = buffer.toString('hex');
+    # buffer = Buffer.from(privtwoBase64, 'base64');
+    # privtwoHex = buffer.toString("hex")
 
-    log privoneHex
-    log privtwoHex
+    # log privoneHex
+    # log privtwoHex
     
-    process.exit(0)
+    # process.exit(0)
+    serverKey = ed25519.keyFromPrivate(serverPriv)
+    log serverKey.getPrivate().toString(16)
 
     key1 = ed25519.genKeyPair()
-    log key1
     key2 = ed25519.genKeyPair()
-    log key2
     key3 = ed25519.genKeyPair()
-    log key3
+
+    #Diffie-Hellman
+    
+    # p = private key
+    # mod = modulus
+    # k = public key
+    # msg = message
+
+    # (msg * p) % mod = secret
+    # msg = (secret * k) % mod  
+
+    # sig = (hash(msg) * p ) % mod
+    # -> (sig * k) % mod == hash(msg)
 
     log "- - -"
+    # shared = p * k % mod 
     shared1 = key1.derive(key2.getPublic());
     shared2 = key2.derive(key1.getPublic());
 
+    shared3 = key1.derive(serverKey.getPublic());
+    shared4 = serverKey.derive(key1.getPublic())
+
+    log key1.getPrivate().toString(16)
+    log key2.getPrivate().toString(16)
+    
+    log "- - -"
     log(shared1.toString(16))
     log(shared2.toString(16))
 
-    log "- - -"    
+    log(shared3.toString(16))
+    log(shared4.toString(16))
+
+    process.exit(0)
+
+    log "- - -"
     shared13 = key1.getPublic().mul(key3.getPrivate())
     shared21 = key2.getPublic().mul(key1.getPrivate())
     shared32 = key3.getPublic().mul(key2.getPrivate())
