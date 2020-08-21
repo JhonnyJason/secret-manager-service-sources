@@ -10,9 +10,10 @@ debugmodule.modulesToDebug =
     unbreaker: true
     # configmodule: true
     # persistentstatemodule: true
-    scimodule: true
-    secretstoremodule: true
+    # scimodule: true
+    # secretstoremodule: true
     securitymodule: true
+    securityprimitives: true
     # startupmodule: true
 
 
