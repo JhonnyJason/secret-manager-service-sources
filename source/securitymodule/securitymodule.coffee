@@ -91,7 +91,7 @@ securitymodule.test = ->
     log privateKeyOne
     
     # TODO figure out how to Match messages onto a point^^
-    message = "9e5049cbfe8d7bc9de46d10ec2c0de28212b10bc600a1ef4e95c76a94a18e968"
+    message = "hello I am the fucking shithead of the shithead and all the sheetheads are deads fuckiers!!!"
 
     log "- - - "
     log "original message hex: " + message

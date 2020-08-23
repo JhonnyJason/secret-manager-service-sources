@@ -59,6 +59,10 @@ noble = require("noble-ed25519")
 ############################################################
 utl = null
 
+#region internalProperties
+algorithm = 'aes-256-cbc'
+#endregion
+
 ############################################################
 securityprimitives.initialize = () ->
     log "securityprimitives.initialize"
@@ -125,7 +129,68 @@ securityprimitives.verify = (signature, publicKey, message) ->
     messageBuffer  = Buffer.from(message, 'utf8')
     return crypto.verify(null, messageBuffer, verfificationKey, signatureBuffer)
 
-securityprimitives.asymetricEncrypt = (messageHex, publicKeyHex) ->
+
+securityprimitives.asymetricEncrypt = (message, publicKeyHex) ->
+    # a = Private Key
+    # G = basePoint
+    # B = aG = Public Key
+    B = noble.Point.fromHex(publicKeyHex)
+    BHex = publicKeyHex
+    # log "BHex: " + BHex
+
+    # n = new one-time secret (generated on sever and forgotten about)
+    # nB = shared secret
+    # key = sha512(nBHex)
+    # X = symetricEncrypt(message, key)
+    # A = nG = one time public key = reference point
+    # {A,X} = data to be stored for B
+
+    # n = one-time secret
+    nBytes = noble.utils.randomPrivateKey()
+    nHex = utl.bytesToHex(nBytes)
+    nBigInt = utl.bytesToBigInt(nBytes)
+    # log nBigInt
+    
+    #A one time public key = reference Point
+    AHex = await securityprimitives.getPublic(nHex)
+    
+    nB = await B.multiply(nBigInt)
+    
+    ## TODO generate AES key
+    hash = doHash(nB.toHex())
+    log "- - - "
+    symkey = hash.toString("hex")
+    log symkey
+    
+    gibbrish = securityprimitives.symetricEncryptBase64(message, symkey)
+    
+    referencePoint = AHex
+    encryptedMessage = gibbrish
+
+    return {referencePoint, encryptedMessage}
+
+securityprimitives.asymetricDecrypt = (secrets, privateKeyHex) ->
+    # a = Private Key
+    # G = basePoint
+    # B = aG = Public Key
+    aBigInt = utl.hexToBigInt(privateKeyHex)
+
+    # {A,X} = secrets
+    # A = nG = one time public secret 
+    # anG = nB = aA = shared secret
+    # key = sha512(aAHex)
+    # message = symetricDecrypt(X, key)
+    AHex = secrets.referencePoint
+    A = noble.Point.fromHex(AHex)
+    aA = await A.multiply(aBigInt)
+    hash = doHash(aA.toHex())
+    symkey = hash.toString("hex")
+
+    gibbrishBase64 = secrets.encryptedMessage
+    message = securityprimitives.symetricDecryptBase64(gibbrishBase64,symkey)
+    return message
+    
+securityprimitives.asymetricEncryptElligator = (messageHex, publicKeyHex) ->
     # a = Private Key
     # G = basePoint
     # B = aG = Public Key
@@ -162,11 +227,12 @@ securityprimitives.asymetricEncrypt = (messageHex, publicKeyHex) ->
 
     return {referencePoint, encryptedMessagePoint}
 
-securityprimitives.asymetricDecrypt = (secrets, privateKeyHex) ->
+securityprimitives.asymetricDecryptElligator = (secrets, privateKeyHex) ->
     # a = Private Key
     # G = basePoint
     # B = aG = Public Key
 
+    ##TODO Elligator stdp
     # M = message to encrypt (must be a point -> requires Point Matching function) = message point
     # n = new one-time secret (generated on sever and forgotten about)
     # A = nG = one time public secret
@@ -190,10 +256,39 @@ securityprimitives.asymetricDecrypt = (secrets, privateKeyHex) ->
     MHex = M.toHex()
     return MHex
 
-securityprimitives.symetricEncrypt = (message, key) ->
+securityprimitives.symetricEncryptBase64 = (message, keyHex) ->
+    ivHex = keyHex.substring(0, 32)
+    ivBuffer = Buffer.from(ivHex, "hex")
+    aesKeyHex = keyHex.substring(32,96)
+    aesKeyBuffer = Buffer.from(aesKeyHex, "hex")
+    # log "- - ivHex: "
+    # log ivHex
+    # log ivHex.length
+    # log "- - aesKeyHex: "
+    # log aesKeyHex
+    # log aesKeyHex.length
+
+    cipher = crypto.createCipheriv(algorithm, aesKeyBuffer, ivBuffer)
+    gibbrish = cipher.update(message, 'utf8', 'base64')
+    gibbrish += cipher.final('base64')
     return gibbrish
 
-securityprimitives.symetricDecrypt = (gibbrish, key) ->
+securityprimitives.symetricDecryptBase64 = (gibbrishBase64, keyHex) ->
+    ivHex = keyHex.substring(0, 32)
+    ivBuffer = Buffer.from(ivHex, "hex")
+    aesKeyHex = keyHex.substring(32,96)
+    aesKeyBuffer = Buffer.from(aesKeyHex, "hex")
+    # log "- - ivHex: "
+    # log ivHex
+    # log ivHex.length
+    # log "- - aesKeyHex: "
+    # log aesKeyHex
+    # log aesKeyHex.length
+
+    decipher = crypto.createDecipheriv(algorithm, aesKeyBuffer, ivBuffer)
+    message = decipher.update(gibbrishBase64, 'base64', 'utf8')
+    message += decipher.final('utf8')
+
     return message
 
 securityprimitives.getPublic = (privateKey) ->
