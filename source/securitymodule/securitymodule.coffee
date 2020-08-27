@@ -53,11 +53,13 @@ primitives = require("./securityprimitives")
 
 ############################################################
 utl = null
+bufUtl = null
 
 ############################################################
 securitymodule.initialize = () ->
     log "securitymodule.initialize"
     utl = allModules.keyutilmodule
+    bufUtl = allModules.bufferutilmodule
     primitives.initialize()
     return
 
@@ -117,20 +119,52 @@ authenticateTest = (data) ->
 
 securitymodule.authenticate = (data) ->
     log "securitymodule.authenticate"
-    verfificationKey = data.publicKey  
+    verificationKey = utl.addPublicKeyBanners(data.publicKey)  
     signature = data.signature
 
     delete data.signature
     message = JSON.stringify(data)
 
-    verified = primitives.verify(signature, verfificationKey, message)
+    verified = primitives.verify(signature, verificationKey, message)
     if !verified then throw new Error("Invalid Signature!")
     return
 
-securitymodule.encrypt = (message, key) ->
+securitymodule.encrypt = (message, nakedPublicKey) ->
     log "securitymodule.encrypt"
+    key = utl.addPublicKeyBanners(nakedPublicKey)
+    keyHex = utl.extractRawPublicKeyHex(key)
     
-    return
+    message = "agagagagagagagagagagagagagagagagaggagagagagagagagag!!!"
+    ##TODO encryption
+    log "hello!"
+    secrets = await primitives.asymetricEncrypt(message, keyHex)
+
+    log "- - - secrets: "
+    olog secrets
+
+    
+    ## TODO test decryption
+    privateKeyPEM = """
+        -----BEGIN PRIVATE KEY-----
+        MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS
+        -----END PRIVATE KEY-----    
+        """
+    
+    privateKeyHex = utl.extractRawPrivateKeyHex(privateKeyPEM)
+    log "- - - privateKeyHex:"
+    log privateKeyHex
+    log "- - - publicKeyHex:"
+    log keyHex
+
+    noblePublicHex = await primitives.getPublic(privateKeyHex)
+    log "- - - noblePublicHex:"
+    log noblePublicHex
+
+    message = await primitives.asymetricDecrypt(secrets, privateKeyHex)
+    log "- - - message: "
+    log message
+
+    return {message}
 
 #endregion
 

@@ -30,6 +30,10 @@ bufferutilmodule.hexToBigInt = (hex) ->
     bigInt = bufferutilmodule.bytesToBigInt(bytes)
     return bigInt
 
+bufferutilmodule.base64ToHex = (base64) ->
+    buffer = Buffer.from(base64, "base64")
+    return buffer.toString("hex")
+
 #endregion
 
 module.exports = bufferutilmodule

@@ -83,10 +83,10 @@ onGetSecretSpace = (req, res) ->
         data = req.body
         olog data
 
-        security.authenticate(data)
+        # security.authenticate(data)
         space = secretStore.getSecretSpace(data.publicKey)
 
-        space = security.encrypt(JSON.stringify(space), data.publicKey) 
+        space = await security.encrypt(JSON.stringify(space), data.publicKey) 
         response.secretSpace = space
         res.send(response)
     catch err

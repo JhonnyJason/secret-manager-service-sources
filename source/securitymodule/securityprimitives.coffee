@@ -77,87 +77,57 @@ doHash = (message) ->
     hash = hasher.digest()
     return hash
 
-doAsymetricEncrypt = (hashBuffer, privateKeyBuffer) ->
-    
-    ecKeyObject = ec.keyFromPrivate(privateKeyBuffer)
-    edKeyObject = ed.keyFromSecret(privateKeyBuffer)
-    ecKeyObject.inspect()
-    edKeyObject.inspect()
-    return "asd 1231"
-    # log "- - - "
-    # for label,content of ecKeyObject
-    #     log label
-
-    # log "- - - "
-    # for label,content of edKeyObject
-    #     log label
-    # log "- - - "
-
-    # log ecKeyObject.priv.toString(16)
-    # log edKeyObject.priv().toString(16)
-
-    # log keyObject.secret().toString("hex")
-
-    ecSignature = ecKeyObject.sign(hashBuffer)
-    for label,content of ecSignature
-        log label
-    log "- - - "
-    derSignature = ecSignature.toDER()
-    signature = Buffer.from(derSignature).toString("hex") 
-    return signature
-    # edSignature = edKeyObject.sign(hashBuffer).toHex()
-    # return edSignature
-
-    # log privateKeyBuffer.toString("hex")
-    # olog keyObject.getPrivate().toString(16)
-
-    # keyObject = ed25519.keyFromSecret(privateKeyBuffer.toString("hex"))
-    # olog keyObject.getPrivate().toString(16)
-
-    # return 
+hashToScalar = (hash) ->
+    relevant = hash.slice(0, 32)
+    relevant[0] &= 248
+    relevant[31] &= 127
+    relevant[31] |= 64
+    return utl.bytesToBigInt(relevant)
 
 #endregion
 
 ############################################################
 #region exposedFunctions
-securityprimitives.createSignature = (message, signingKey) ->
+securityprimitives.createSignature = (message, signingKey) ->    
     messageBuffer = Buffer.from(message, 'utf8')
     return crypto.sign(null, messageBuffer, signingKey) 
 
 securityprimitives.verify = (signature, publicKey, message) ->
     signatureBuffer = Buffer.from(signature, "base64")
     messageBuffer  = Buffer.from(message, 'utf8')
-    return crypto.verify(null, messageBuffer, verfificationKey, signatureBuffer)
-
+    return crypto.verify(null, messageBuffer, publicKey, signatureBuffer)
 
 securityprimitives.asymetricEncrypt = (message, publicKeyHex) ->
     # a = Private Key
+    # k = sha512(a) -> hashToScalar
     # G = basePoint
-    # B = aG = Public Key
+    # B = kG = Public Key
     B = noble.Point.fromHex(publicKeyHex)
     BHex = publicKeyHex
     # log "BHex: " + BHex
 
     # n = new one-time secret (generated on sever and forgotten about)
-    # nB = shared secret
-    # key = sha512(nBHex)
+    # l = sha512(n) -> hashToScalar
+    # lB = lkG = shared secret
+    # key = sha512(lBHex)
     # X = symetricEncrypt(message, key)
-    # A = nG = one time public key = reference point
+    # A = lG = one time public reference point
     # {A,X} = data to be stored for B
 
     # n = one-time secret
     nBytes = noble.utils.randomPrivateKey()
     nHex = utl.bytesToHex(nBytes)
-    nBigInt = utl.bytesToBigInt(nBytes)
-    # log nBigInt
+
+    lBigInt = hashToScalar(doHash(nBytes))
+    # log lBigInt
     
     #A one time public key = reference Point
     AHex = await securityprimitives.getPublic(nHex)
     
-    nB = await B.multiply(nBigInt)
+    lB = await B.multiply(lBigInt)
     
     ## TODO generate AES key
-    hash = doHash(nB.toHex())
+    hash = doHash(lB.toHex())
     log "- - - "
     symkey = hash.toString("hex")
     log symkey
@@ -171,25 +141,28 @@ securityprimitives.asymetricEncrypt = (message, publicKeyHex) ->
 
 securityprimitives.asymetricDecrypt = (secrets, privateKeyHex) ->
     # a = Private Key
+    # k = sha512(a) -> hashToScalar
     # G = basePoint
-    # B = aG = Public Key
-    aBigInt = utl.hexToBigInt(privateKeyHex)
+    # B = kG = Public Key
 
+    aBytes = utl.hexToBytes(privateKeyHex)
+    kBigInt = hashToScalar(doHash(aBytes))
+    
     # {A,X} = secrets
-    # A = nG = one time public secret 
-    # anG = nB = aA = shared secret
-    # key = sha512(aAHex)
+    # A = lG = one time public reference point 
+    # klG = lB = kA = shared secret
+    # key = sha512(kAHex)
     # message = symetricDecrypt(X, key)
     AHex = secrets.referencePoint
     A = noble.Point.fromHex(AHex)
-    aA = await A.multiply(aBigInt)
-    hash = doHash(aA.toHex())
+    kA = await A.multiply(kBigInt)
+    hash = doHash(kA.toHex())
     symkey = hash.toString("hex")
 
     gibbrishBase64 = secrets.encryptedMessage
     message = securityprimitives.symetricDecryptBase64(gibbrishBase64,symkey)
     return message
-    
+
 securityprimitives.asymetricEncryptElligator = (messageHex, publicKeyHex) ->
     # a = Private Key
     # G = basePoint
@@ -288,17 +261,16 @@ securityprimitives.symetricDecryptBase64 = (gibbrishBase64, keyHex) ->
     decipher = crypto.createDecipheriv(algorithm, aesKeyBuffer, ivBuffer)
     message = decipher.update(gibbrishBase64, 'base64', 'utf8')
     message += decipher.final('utf8')
-
     return message
 
 securityprimitives.getPublic = (privateKey) ->
     # important! here it all is hex values
     # important! also the standard function uses a hash... 
     # if privateKey is a then the publicKey is not aG but a'G
-    # return noble.getPublicKey(privateKey)
-    a = utl.hexToBigInt(privateKey)
-    G = noble.Point.BASE
-    return G.multiply(a).toHex()
+    return await noble.getPublicKey(privateKey)
+    # a = utl.hexToBigInt(privateKey)
+    # G = noble.Point.BASE
+    # return G.multiply(a).toHex()
 
 #endregion
 

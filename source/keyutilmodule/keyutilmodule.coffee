@@ -33,33 +33,55 @@ stripBanners = (fullKey) ->
     
     return maxToken
 
-addBanners = (pubKey) ->
+addPublicBanners = (pubKey) ->
     return """
     -----BEGIN PUBLIC KEY-----
     #{pubKey}
     -----END PUBLIC KEY-----
     """
 
-############################################################
-base64Key = (fullPEMKey) -> rawKey(fullPEMKey).toString("base64")
-hexKey = (fullPEMKey) -> rawKey(fullPEMKey).toString("hex")
+addPrivateBanners = (privKey) ->
+    return """
+    -----BEGIN PRIVATE KEY-----
+    #{privKey}
+    -----END PRIVATE KEY-----
+    """
 
 ############################################################
-rawKey = (fullPEMKey) ->
+base64PublicKey = (fullPEMKey) -> rawPublicKey(fullPEMKey).toString("base64")
+hexPublicKey = (fullPEMKey) -> rawPublicKey(fullPEMKey).toString("hex")
+
+base64PrivateKey = (fullPEMKey) -> rawPrivateKey(fullPEMKey).toString("base64")
+hexPrivateKey = (fullPEMKey) -> rawPrivateKey(fullPEMKey).toString("hex")
+
+############################################################
+rawPrivateKey = (fullPEMKey) ->
     keyObject = sshpk.parseKey(fullPEMKey, "pem")
     return keyObject.source.part.k.data
+
+rawPublicKey = (fullPEMKey) ->
+    keyObject = sshpk.parseKey(fullPEMKey, "pem")
+    return keyObject.part.A.data
 
 #endregion
 
 ############################################################
 #region exposedFunctions
 keyutilmodule.stripKeyBanners = stripBanners
-keyutilmodule.addKeyBanners = addBanners
-keyutilmodule.formatKey = addBanners
 
-keyutilmodule.extractRawKeyBuffer = rawKey
-keyutilmodule.extractRawKeyBase64 = base64Key
-keyutilmodule.extractRawKeyHex = hexKey
+keyutilmodule.addPublicKeyBanners = addPublicBanners
+keyutilmodule.formatPublicKey = addPublicBanners
+
+keyutilmodule.addPrivateKeyBanners = addPrivateBanners
+keyutilmodule.formatPrivateKey = addPrivateBanners
+
+keyutilmodule.extractRawPublicKeyBuffer = rawPublicKey
+keyutilmodule.extractRawPublicKeyBase64 = base64PublicKey
+keyutilmodule.extractRawPublicKeyHex = hexPublicKey
+
+keyutilmodule.extractRawPrivateKeyBuffer = rawPrivateKey
+keyutilmodule.extractRawPrivateKeyBase64 = base64PrivateKey
+keyutilmodule.extractRawPrivateKeyHex = hexPrivateKey
 
 #endregion
 
