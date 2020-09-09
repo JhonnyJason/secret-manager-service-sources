@@ -19,8 +19,9 @@ bodyParser = require('body-parser')
 ############################################################
 #region internalProperties
 cfg = null
-secretStore = null
 security = null
+secretStore = null
+secretHandler = null
 
 ############################################################
 app = null
@@ -30,8 +31,9 @@ app = null
 scimodule.initialize = () ->
     log "scimodule.initialize"
     cfg = allModules.configmodule
-    secretStore = allModules.secretstoremodule
     security = allModules.securitymodule
+    secretStore = allModules.secretstoremodule
+    secretHandler = allModules.secrethandlermodule
 
     app = express()
     app.use bodyParser.urlencoded(extended: false)
@@ -48,12 +50,14 @@ attachSCIFunctions = ->
     app.post "/getSecretSpace", onGetSecretSpace
     app.post "/getSecret", onGetSecret
     app.post "/setSecret", onSetSecret
-    
+    app.post "/deleteSecret", onDeleteSecret
+
+    app.post "/startAcceptingSecretsFrom", onStartAcceptingSecretsFrom
+    app.post "/stopAcceptingSecretsFrom", onStopAcceptingSecretsFrom
+
     app.post "/startSharingSecretTo", onStartSharingSecretTo
     app.post "/stopSharingSecretTo", onStopSharingSecretTo
-    app.post "/startSharingSecretSpaceTo", onStartSharingSecretSpaceTo
-    app.post "/stopSharingSecretSpaceTo", onStopSharingSecretSpaceTo
-
+    
     return
 
 ############################################################
@@ -64,8 +68,8 @@ onAddNodeId = (req, res) ->
     try
         data = req.body
         olog data
-        
-        security.authenticate(data)
+
+        await security.authenticate(data)
         secretStore.addNodeId(data.publicKey)
 
         response.ok = true
@@ -83,12 +87,9 @@ onGetSecretSpace = (req, res) ->
         data = req.body
         olog data
 
-        # security.authenticate(data)
-        space = secretStore.getSecretSpace(data.publicKey)
-
-        space = await security.encrypt(JSON.stringify(space), data.publicKey) 
-        response.secretSpace = space
-        res.send(response)
+        await security.authenticate(data)
+        space = await secretHandler.getEncryptedSecretSpace(data.publicKey)
+        res.send(space)
     catch err
         log "Error in onGetSecretSpace!"
         log err
@@ -102,8 +103,8 @@ onGetSecret = (req, res) ->
         data = req.body
         olog data
 
-        security.authenticate(data)
-        response.secret = secretStore.getSecret(data.publicKey, data.secretKey)
+        await security.authenticate(data)
+        response = secretStore.getSecret(data.publicKey, data.secretId)
 
         res.send(response)
     catch err
@@ -119,14 +120,67 @@ onSetSecret = (req, res) ->
         data = req.body
         olog data
 
-        security.authenticate(data)
-        secret = security.encrypt(data.secret, data.publicKey)
-        secretStore.setSecret(data.publicKey, data.secretKey, secret)
+        await security.authenticate(data)
+        await secretHandler.setSecret(data.secretId, data.secret, data.publicKey)
         
         response.ok = true
         res.send(response)
     catch err
         log "Error in onSetSecret!"
+        log err
+        res.send(err)
+    return
+
+onDeleteSecret = (req, res) ->
+    log "onDeleteSecret"
+    response = {}
+    try
+        data = req.body
+        olog data
+
+        await security.authenticate(data)
+        secretStore.deleteSecret(data.publicKey, data.secretId)
+
+        response.ok = true
+        res.send(response)
+    catch err
+        log "Error in onGetSecret!"
+        log err
+        res.send(err)
+    return
+
+onStartAcceptingSecretsFrom = (req, res) ->
+    log "onStartAcceptingSecretsFrom"
+    response = {}
+    try
+        data = req.body
+        olog data
+
+        await security.authenticate(data)
+        secretStore.startAcceptingSecretsFrom(data.publicKey, data.fromId)
+
+        response.ok = true
+        res.send(response)
+    catch err
+        log "Error in onStartAcceptingSecretsFrom!"
+        log err
+        res.send(err)
+    return
+
+onStopAcceptingSecretsFrom = (req, res) ->
+    log "onStopAcceptingSecretsFrom"
+    response = {}
+    try
+        data = req.body
+        olog data
+
+        await security.authenticate(data)
+        secretStore.stopAcceptingSecretsFrom(data.publicKey, data.fromId)
+
+        response.ok = true
+        res.send(response)
+    catch err
+        log "Error in onStopAcceptingSecretsFrom!"
         log err
         res.send(err)
     return
@@ -137,7 +191,11 @@ onStartSharingSecretTo = (req, res) ->
     try
         data = req.body
         olog data
-        ##TODO implement
+
+        await security.authenticate(data)
+        secretStore.startSharingSecretTo(data.publicKey, data.shareToId, data.secretId)
+
+        response.ok = true
         res.send(response)
     catch err
         log "Error in onStartSharingSecretTo!"
@@ -151,38 +209,14 @@ onStopSharingSecretTo = (req, res) ->
     try
         data = req.body
         olog data
-        ##TODO implement
+
+        await security.authenticate(data)
+        secretStore.stopSharingSecretTo(data.publicKey, data.sharedToId, data.secretId)
+
+        response.ok = true
         res.send(response)
     catch err
         log "Error in onStopSharingSecretTo!"
-        log err
-        res.send(err)
-    return
-
-onStartSharingSecretSpaceTo = (req, res) ->
-    log "onStartSharingSecretSpaceTo"
-    response = {}
-    try
-        data = req.body
-        olog data
-        ##TODO implement
-        res.send(response)
-    catch err
-        log "Error in onStartSharingSecretSpaceTo!"
-        log err
-        res.send(err)
-    return
-
-onStopSharingSecretSpaceTo = (req, res) ->
-    log "onStopSharingSecretSpaceTo"
-    response = {}
-    try
-        data = req.body
-        olog data
-        ##TODO implement
-        res.send(response)
-    catch err
-        log "Error in onStopSharingSecretSpaceTo!"
         log err
         res.send(err)
     return

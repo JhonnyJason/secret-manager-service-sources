@@ -65,7 +65,7 @@ securitymodule.initialize = () ->
 
 ############################################################
 #region internalFunctions
-createSignature = (message) ->
+createSignature = (content) ->
     log "securitymodule.createSignature"
     
     signingKey1 = """-----BEGIN PRIVATE KEY-----
@@ -76,7 +76,7 @@ createSignature = (message) ->
         MC4CAQAwBQYDK2VwBCIEIABaG2DGL4WE9niHPbdZtbmPOufhkqEJIibW1mlYsfXT
         -----END PRIVATE KEY-----"""
 
-    signature2 = crypto.sign(null, messageBuffer, signingKey2)
+    signature2 = crypto.sign(null, contentBuffer, signingKey2)
 
     log "signature 1: " + signature1.toString("base64")
     log "signature 2: " + signature2.toString("base64")
@@ -92,22 +92,22 @@ securitymodule.test = ->
     privateKeyOne = utl.extractRawKeyHex(privone)
     log privateKeyOne
     
-    # TODO figure out how to Match messages onto a point^^
-    message = "hello I am the fucking shithead of the shithead and all the sheetheads are deads fuckiers!!!"
+    # TODO figure out how to Match contents onto a point^^
+    content = "hello I am the fucking shithead of the shithead and all the sheetheads are deads fuckiers!!!"
 
     log "- - - "
-    log "original message hex: " + message
+    log "original content hex: " + content
     log "- - - "
 
     publicKeyOne = await primitives.getPublic(privateKeyOne)
     # log "publicKeyOne: " + publicKeyOne
 
-    secrets = await primitives.asymetricEncrypt(message, publicKeyOne)
+    secrets = await primitives.asymetricEncrypt(content, publicKeyOne)
     olog secrets
 
-    message = await primitives.asymetricDecrypt(secrets, privateKeyOne)
+    content = await primitives.asymetricDecrypt(secrets, privateKeyOne)
     log "- - - "
-    log "result message hex: " + message
+    log "result content hex: " + content
     log "- - - "
 
     process.exit(0)
@@ -119,53 +119,32 @@ authenticateTest = (data) ->
 
 securitymodule.authenticate = (data) ->
     log "securitymodule.authenticate"
-    verificationKey = utl.addPublicKeyBanners(data.publicKey)  
-    signature = data.signature
+    idHex = data.publicKey
+    sigHex = data.signature
+    if !sigHex then throw new Error("No Signature!")
+    if !idHex then throw new Error("No Public key!")
 
     delete data.signature
-    message = JSON.stringify(data)
+    content = JSON.stringify(data)
 
-    verified = primitives.verify(signature, verificationKey, message)
-    if !verified then throw new Error("Invalid Signature!")
+    try
+        verified = await primitives.verify(sigHex, idHex, content)
+        if !verified then throw new Error("Invalid Signature!")
+    catch err then throw new Error("Error on Verify! " + err)
     return
 
-securitymodule.encrypt = (message, nakedPublicKey) ->
+securitymodule.encrypt = (content, keyHex) ->
     log "securitymodule.encrypt"
-    key = utl.addPublicKeyBanners(nakedPublicKey)
-    keyHex = utl.extractRawPublicKeyHex(key)
-    
-    message = "agagagagagagagagagagagagagagagagaggagagagagagagagag!!!"
-    ##TODO encryption
-    log "hello!"
-    secrets = await primitives.asymetricEncrypt(message, keyHex)
+    salt = primitives.createRandomLengthSalt()
+    content = salt + content
+    # log "prepended salt: " + content
+    # log "separation code: " + content.charCodeAt(salt.length - 1)  
+    secrets = await primitives.asymetricEncrypt(content, keyHex)
 
     log "- - - secrets: "
     olog secrets
-
+    return secrets
     
-    ## TODO test decryption
-    privateKeyPEM = """
-        -----BEGIN PRIVATE KEY-----
-        MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS
-        -----END PRIVATE KEY-----    
-        """
-    
-    privateKeyHex = utl.extractRawPrivateKeyHex(privateKeyPEM)
-    log "- - - privateKeyHex:"
-    log privateKeyHex
-    log "- - - publicKeyHex:"
-    log keyHex
-
-    noblePublicHex = await primitives.getPublic(privateKeyHex)
-    log "- - - noblePublicHex:"
-    log noblePublicHex
-
-    message = await primitives.asymetricDecrypt(secrets, privateKeyHex)
-    log "- - - message: "
-    log message
-
-    return {message}
-
 #endregion
 
 module.exports = securitymodule

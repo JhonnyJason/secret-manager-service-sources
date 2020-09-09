@@ -13,9 +13,15 @@ startupmodule.initialize = () ->
     sci = allModules.scimodule
     return
 
+
+############################################################
+test = ->
+    return
+
 ############################################################
 startupmodule.serviceStartup = ->
     log "startupmodule.serviceStartup"
+    # test()
     sci.prepareAndExpose()
     return
 
