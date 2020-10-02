@@ -17,6 +17,7 @@ debugmodule.modulesToDebug =
     # securitymodule: true
     # securityprimitives: true
     # startupmodule: true
+    telegrambotmodule: true
 
 
 export default debugmodule
