@@ -6,22 +6,19 @@ log = (arg) ->
 
 ############################################################
 sci = null
+bot = null
 
 ############################################################
 startupmodule.initialize = () ->
     log "startupmodule.initialize"
     sci = allModules.scimodule
+    bot = allModules.telegrambotmodule
     return
 
-
-############################################################
-test = ->
-    return
 
 ############################################################
 startupmodule.serviceStartup = ->
     log "startupmodule.serviceStartup"
-    # test()
     sci.prepareAndExpose()
     return
 

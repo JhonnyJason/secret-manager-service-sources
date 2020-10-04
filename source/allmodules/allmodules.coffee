@@ -9,6 +9,7 @@ import secrethandlermodule from "./secrethandlermodule"
 import secretstoremodule from "./secretstoremodule"
 import securitymodule from "./securitymodule"
 import startupmodule from "./startupmodule"
+import telegrambotmodule from "./telegrambotmodule"
 
 Modules = {
     bufferutilmodule,
@@ -22,6 +23,7 @@ Modules = {
     secretstoremodule,
     securitymodule,
     startupmodule,
+    telegrambotmodule,
 }
 
 export default Modules

@@ -1,3 +1,6 @@
 [submodule "source/persistentstatemodule"]
 	path = source/persistentstatemodule
 	url = git@github.com:JhonnyJason/service-sources-persistentstatemodule.git
+[submodule "source/telegrambotmodule"]
+	path = source/telegrambotmodule
+	url = git@github.com:JhonnyJason/service-sources-telegrambotmodule.git

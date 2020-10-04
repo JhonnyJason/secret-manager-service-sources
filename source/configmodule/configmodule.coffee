@@ -10,7 +10,7 @@ configmodule.initialize = () ->
     return
 
 ############################################################
-configmodule.telegramToken = "1386909865:AAEt52CzdgbfExKyO1XXGPNPTeCso2ohCPY"
 configmodule.persistentStateRelativeBasePath = "../state"
+configmodule.numberOfChachedEntries = 1
 
 export default configmodule

@@ -13,11 +13,11 @@ debugmodule.modulesToDebug =
     # persistentstatemodule: true
     scimodule: true
     # secrethandlermodule: true
-    # secretstoremodule: true
+    secretstoremodule: true
     # securitymodule: true
     # securityprimitives: true
     # startupmodule: true
-    telegrambotmodule: true
+    # telegrambotmodule: true
 
 
 export default debugmodule

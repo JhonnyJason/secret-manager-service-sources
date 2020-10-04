@@ -10,26 +10,105 @@ print = (arg) -> console.log(arg)
 #endregion
 
 ############################################################
+bot = null
 state = null
 
 ############################################################
 idToSpaceMap = {}
+cachedIds = []
+maxCacheSize = 0
 
 ############################################################
 secretstoremodule.initialize = () ->
     log "secretstoremodule.initialize"
+    bot = allModules.telegrambotmodule
     state = allModules.persistentstatemodule
+    c = allModules.configmodule
+    maxCacheSize = c.numberOfCachedEntries
+
     idToSpaceMap = state.load("idToSpaceMap")
+    log "maxCacheSize: "+maxCacheSize
+    log "cachedIds.length: "+cachedIds.length
+    assertCleanCachedState()
     olog idToSpaceMap
+    olog cachedIds
     return
 
 ############################################################
 #region internalFunctions
-saveState = ->
-    state.save("idToSpaceMap", idToSpaceMap)
-    return
+processUnexpected = (err) ->
+    # bot.send err
+    throw err
 
 ############################################################
+#region caching helpers
+assertCleanCachedState = ->
+    log "assertCleanCachedState"
+    allIds = Object.keys(idToSpaceMap)
+    olog allIds
+    log " - - - "
+    if cachedIds.length == 0
+        for id in allIds
+            log "checking id: " + id
+            if cachedIds.length == maxCacheSize
+                log "we have reached maxCacheSize already - should be removed from cache!"
+                if idToSpaceMap[id] != 1 then removeFromCache(id)
+            else if idToSpaceMap[id] != 1
+                log "did not reach maxCacheSize yet..."
+                cachedIds.push(id)
+                state.save(id, idToSpaceMap[id])
+            log " - - - "
+    ## else TODO or maybe not relevant if it is only used on initialize        
+    return
+
+assertIdIsAvailable = (id) ->
+    throw new Error("unknown nodeId!") unless idToSpaceMap[id]?
+    if idToSpaceMap[id] == 1 then loadIntoCache(id)
+    return
+
+addNewEntry = (id) ->
+    log "addNewEntry"
+    idToSpaceMap[id] = {}
+    state.save(id, idToSpaceMap[id])
+    cachedIds.push(id)
+    cacheRemoveExcess()
+    return
+
+loadIntoCache = (id) ->
+    log "loadIntoCache"
+    return unless !idToSpaceMap[id]?
+    index = cachedIds.indexOf(id)
+    if index > 0 then cachedIds.splice(index, 1)
+    idToSpaceMap[id] = state.load(id)
+    cachedIds.push(id)
+    cacheRemoveExcess()
+    return
+
+removeFromCache = (id) ->
+    log "removeFromCache"
+    if !idToSpaceMap[id]? then throw new Error("Id to removeFromCache does not exist!")
+    state.save(id, idToSpaceMap[id])
+    state.uncache(id)
+    idToSpaceMap[id] = 1
+    return
+
+cacheRemoveExcess = ->
+    excess = cachedIds.length - maxCacheSize
+    return if excess <= 0
+    while excess--
+        id = cachedIds.shift()
+        removeFromCache(id)
+    return
+
+saveState = ->
+    try state.save("idToSpaceMap", idToSpaceMap)
+    catch err then processUnexpected err
+    return
+
+#endregion
+
+############################################################
+#region secret sharing helpers
 isShared = (id) ->
     if id.length < 65 then return false
     if id.charAt(64) != "." then return false
@@ -64,19 +143,23 @@ removeFromArray = (array, element) ->
 
 #endregion
 
+#endregion
+
 ############################################################
 #region exposedFunctions
 secretstoremodule.addNodeId = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
     return unless !idToSpaceMap[nodeId]?
-    idToSpaceMap[nodeId] = {}
+    addNewEntry(nodeId)
     saveState()
     return
 
-secretstoremodule.getSecretSpace = (nodeId) -> idToSpaceMap[nodeId]
+secretstoremodule.getSecretSpace = (nodeId) -> 
+    if idToSpaceMap[nodeId] == 1 then loadIntoCache(nodeId)
+    return idToSpaceMap[nodeId]
 
 secretstoremodule.getSecret = (nodeId, secretId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     if isShared(secretId) then return getSharedSecret(node, secretId)
     else 
@@ -85,7 +168,7 @@ secretstoremodule.getSecret = (nodeId, secretId) ->
         return node.secret
 
 secretstoremodule.deleteSecret = (nodeId, secretId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     if isShared(secretId) then return deleteSharedSecret(node, secretId)
     else delete node[secretId] if node[secretId]?
@@ -93,7 +176,7 @@ secretstoremodule.deleteSecret = (nodeId, secretId) ->
     return
 
 secretstoremodule.getSharedTo = (nodeId, secretId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     if isShared(secretId) then return []
     else
@@ -102,7 +185,7 @@ secretstoremodule.getSharedTo = (nodeId, secretId) ->
         return node.sharedTo
 
 secretstoremodule.setSecret = (nodeId, secretId, secret) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     throw new Error("cannot set shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
     if !node[secretId]? then node[secretId] = {}
@@ -113,7 +196,7 @@ secretstoremodule.setSecret = (nodeId, secretId, secret) ->
     return
 
 secretstoremodule.setSharedSecret = (nodeId, fromId, secretId, secret) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     throw new Error("no secrets accepted from fromId!") unless node[fromId]?
     node = node[fromId]
@@ -122,7 +205,7 @@ secretstoremodule.setSharedSecret = (nodeId, fromId, secretId, secret) ->
     return
 
 secretstoremodule.startAcceptingSecretsFrom = (nodeId, fromId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     return unless !node[fromId]?
     node[fromId] = {}
@@ -130,7 +213,7 @@ secretstoremodule.startAcceptingSecretsFrom = (nodeId, fromId) ->
     return
 
 secretstoremodule.stopAcceptingSecretsFrom = (nodeId, fromId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     return unless node[fromId]?
     delete node[fromId]
@@ -138,7 +221,7 @@ secretstoremodule.stopAcceptingSecretsFrom = (nodeId, fromId) ->
     return
 
 secretstoremodule.startSharingSecretTo = (nodeId, shareToId, secretId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     throw new Error("cannot start sharing shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
     if !node[secretId]? then node[secretId] = {}
@@ -150,7 +233,7 @@ secretstoremodule.startSharingSecretTo = (nodeId, shareToId, secretId) ->
     return
 
 secretstoremodule.stopSharingSecretTo = (nodeId, sharedToId, secretId) ->
-    throw new Error("unknown nodeId!") unless idToSpaceMap[nodeId]?
+    assertIdIsAvailable(nodeId)
     throw new Error("cannot stop sharing a shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
     if !node[secretId]? then return
