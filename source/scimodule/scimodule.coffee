@@ -77,7 +77,7 @@ onAddNodeId = (req, res) ->
     catch err
         log "Error in onAddNodeId!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onGetSecretSpace = (req, res) ->
@@ -93,7 +93,7 @@ onGetSecretSpace = (req, res) ->
     catch err
         log "Error in onGetSecretSpace!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onGetSecret = (req, res) ->
@@ -110,7 +110,7 @@ onGetSecret = (req, res) ->
     catch err
         log "Error in onGetSecret!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onSetSecret = (req, res) ->
@@ -128,7 +128,7 @@ onSetSecret = (req, res) ->
     catch err
         log "Error in onSetSecret!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onDeleteSecret = (req, res) ->
@@ -146,7 +146,7 @@ onDeleteSecret = (req, res) ->
     catch err
         log "Error in onGetSecret!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onStartAcceptingSecretsFrom = (req, res) ->
@@ -164,7 +164,7 @@ onStartAcceptingSecretsFrom = (req, res) ->
     catch err
         log "Error in onStartAcceptingSecretsFrom!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onStopAcceptingSecretsFrom = (req, res) ->
@@ -182,7 +182,7 @@ onStopAcceptingSecretsFrom = (req, res) ->
     catch err
         log "Error in onStopAcceptingSecretsFrom!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onStartSharingSecretTo = (req, res) ->
@@ -200,7 +200,7 @@ onStartSharingSecretTo = (req, res) ->
     catch err
         log "Error in onStartSharingSecretTo!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 onStopSharingSecretTo = (req, res) ->
@@ -218,7 +218,7 @@ onStopSharingSecretTo = (req, res) ->
     catch err
         log "Error in onStopSharingSecretTo!"
         log err
-        res.send(err)
+        res.send(err.stack)
     return
 
 #endregion
