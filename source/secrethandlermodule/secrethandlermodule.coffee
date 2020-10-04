@@ -37,7 +37,7 @@ secrethandlermodule.setSecret = (secretId, secretPlain, nodeId) ->
         secretStore.setSecret(nodeId, secretId, ourSecret)
         sharedTo = secretStore.getSharedTo(nodeId, secretId)
         olog sharedTo
-        for sharedToId in sharedTo
+        for sharedToId in sharedTo when typeof sharedToId == "string"
             theirSecret = await security.encrypt(secretPlain, sharedToId)
             secretStore.setSharedSecret(sharedToId, nodeId, secretId, theirSecret)
         return

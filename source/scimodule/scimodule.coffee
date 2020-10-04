@@ -18,7 +18,6 @@ bodyParser = require('body-parser')
 
 ############################################################
 #region internalProperties
-bot = null
 cfg = null
 security = null
 secretStore = null
@@ -31,7 +30,6 @@ app = null
 ############################################################
 scimodule.initialize = () ->
     log "scimodule.initialize"
-    bot = allModules.telegrambotmodule
     cfg = allModules.configmodule
     security = allModules.securitymodule
     secretStore = allModules.secretstoremodule

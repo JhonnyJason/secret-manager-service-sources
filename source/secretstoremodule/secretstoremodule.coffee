@@ -10,7 +10,6 @@ print = (arg) -> console.log(arg)
 #endregion
 
 ############################################################
-bot = null
 state = null
 
 ############################################################
@@ -21,44 +20,39 @@ maxCacheSize = 0
 ############################################################
 secretstoremodule.initialize = () ->
     log "secretstoremodule.initialize"
-    bot = allModules.telegrambotmodule
     state = allModules.persistentstatemodule
     c = allModules.configmodule
-    maxCacheSize = c.numberOfCachedEntries
+    maxCacheSize = c.numberOfChachedEntries
 
     idToSpaceMap = state.load("idToSpaceMap")
-    log "maxCacheSize: "+maxCacheSize
-    log "cachedIds.length: "+cachedIds.length
     assertCleanCachedState()
-    olog idToSpaceMap
-    olog cachedIds
+    printState()
     return
 
 ############################################################
 #region internalFunctions
-processUnexpected = (err) ->
-    # bot.send err
-    throw err
+printState = ->
+    log "printState"
+    olog idToSpaceMap
+    olog cachedIds
+    log " - - - "
+    return
+
+processUnexpected = (err) -> throw err
 
 ############################################################
 #region caching helpers
 assertCleanCachedState = ->
-    log "assertCleanCachedState"
     allIds = Object.keys(idToSpaceMap)
-    olog allIds
-    log " - - - "
     if cachedIds.length == 0
         for id in allIds
-            log "checking id: " + id
             if cachedIds.length == maxCacheSize
-                log "we have reached maxCacheSize already - should be removed from cache!"
                 if idToSpaceMap[id] != 1 then removeFromCache(id)
             else if idToSpaceMap[id] != 1
-                log "did not reach maxCacheSize yet..."
                 cachedIds.push(id)
                 state.save(id, idToSpaceMap[id])
-            log " - - - "
     ## else TODO or maybe not relevant if it is only used on initialize        
+    saveState()
     return
 
 assertIdIsAvailable = (id) ->
@@ -67,25 +61,27 @@ assertIdIsAvailable = (id) ->
     return
 
 addNewEntry = (id) ->
-    log "addNewEntry"
+    log "addNewEntry: "+id
     idToSpaceMap[id] = {}
     state.save(id, idToSpaceMap[id])
     cachedIds.push(id)
     cacheRemoveExcess()
+    printState()
     return
 
 loadIntoCache = (id) ->
-    log "loadIntoCache"
-    return unless !idToSpaceMap[id]?
+    log "loadIntoCache: "+id
+    return unless idToSpaceMap[id]?
     index = cachedIds.indexOf(id)
     if index > 0 then cachedIds.splice(index, 1)
     idToSpaceMap[id] = state.load(id)
     cachedIds.push(id)
     cacheRemoveExcess()
+    printState()
     return
 
 removeFromCache = (id) ->
-    log "removeFromCache"
+    log "removeFromCache: "+id
     if !idToSpaceMap[id]? then throw new Error("Id to removeFromCache does not exist!")
     state.save(id, idToSpaceMap[id])
     state.uncache(id)
@@ -130,7 +126,8 @@ deleteSharedSecret = (node, secretId) ->
     return 
 
 addToArray = (array, element) ->
-    for el in array when el == element then return
+    for el in array 
+        return if el == element
     array.push element
     return
 
@@ -222,6 +219,8 @@ secretstoremodule.stopAcceptingSecretsFrom = (nodeId, fromId) ->
 
 secretstoremodule.startSharingSecretTo = (nodeId, shareToId, secretId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No shareToId provided!") unless sharedToId?
+    throw new Error("No secretId provided!") unless secretId?
     throw new Error("cannot start sharing shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
     if !node[secretId]? then node[secretId] = {}

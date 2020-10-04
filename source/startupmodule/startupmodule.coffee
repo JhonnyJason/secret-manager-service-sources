@@ -6,13 +6,11 @@ log = (arg) ->
 
 ############################################################
 sci = null
-bot = null
 
 ############################################################
 startupmodule.initialize = () ->
     log "startupmodule.initialize"
     sci = allModules.scimodule
-    bot = allModules.telegrambotmodule
     return
 
 
