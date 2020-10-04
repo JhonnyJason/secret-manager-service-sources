@@ -11,6 +11,6 @@ configmodule.initialize = () ->
 
 ############################################################
 configmodule.persistentStateRelativeBasePath = "../state"
-configmodule.numberOfChachedEntries = 1
+configmodule.numberOfChachedEntries = 128
 
 export default configmodule
