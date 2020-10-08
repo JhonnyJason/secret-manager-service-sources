@@ -56,6 +56,7 @@ assertCleanCachedState = ->
     return
 
 assertIdIsAvailable = (id) ->
+    throw new Error("No nodeId provided!") unless id
     throw new Error("unknown nodeId!") unless idToSpaceMap[id]?
     if idToSpaceMap[id] == 1 then loadIntoCache(id)
     return
@@ -152,11 +153,13 @@ secretstoremodule.addNodeId = (nodeId) ->
     return
 
 secretstoremodule.getSecretSpace = (nodeId) -> 
+    throw new Error("No nodeId provided!") unless nodeId
     if idToSpaceMap[nodeId] == 1 then loadIntoCache(nodeId)
     return idToSpaceMap[nodeId]
 
 secretstoremodule.getSecret = (nodeId, secretId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No secretId provided!") unless secretId?
     node = idToSpaceMap[nodeId]
     if isShared(secretId) then return getSharedSecret(node, secretId)
     else 
@@ -166,6 +169,7 @@ secretstoremodule.getSecret = (nodeId, secretId) ->
 
 secretstoremodule.deleteSecret = (nodeId, secretId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No secretId provided!") unless secretId?
     node = idToSpaceMap[nodeId]
     if isShared(secretId) then return deleteSharedSecret(node, secretId)
     else delete node[secretId] if node[secretId]?
@@ -174,6 +178,7 @@ secretstoremodule.deleteSecret = (nodeId, secretId) ->
 
 secretstoremodule.getSharedTo = (nodeId, secretId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No secretId provided!") unless secretId?
     node = idToSpaceMap[nodeId]
     if isShared(secretId) then return []
     else
@@ -183,6 +188,7 @@ secretstoremodule.getSharedTo = (nodeId, secretId) ->
 
 secretstoremodule.setSecret = (nodeId, secretId, secret) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No secretId provided!") unless secretId?
     throw new Error("cannot set shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
     if !node[secretId]? then node[secretId] = {}
@@ -203,6 +209,8 @@ secretstoremodule.setSharedSecret = (nodeId, fromId, secretId, secret) ->
 
 secretstoremodule.startAcceptingSecretsFrom = (nodeId, fromId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No fromId provided!") unless fromId?
+
     node = idToSpaceMap[nodeId]
     return unless !node[fromId]?
     node[fromId] = {}
@@ -211,6 +219,8 @@ secretstoremodule.startAcceptingSecretsFrom = (nodeId, fromId) ->
 
 secretstoremodule.stopAcceptingSecretsFrom = (nodeId, fromId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No fromId provided!") unless fromId?
+
     node = idToSpaceMap[nodeId]
     return unless node[fromId]?
     delete node[fromId]
@@ -219,7 +229,7 @@ secretstoremodule.stopAcceptingSecretsFrom = (nodeId, fromId) ->
 
 secretstoremodule.startSharingSecretTo = (nodeId, shareToId, secretId) ->
     assertIdIsAvailable(nodeId)
-    throw new Error("No shareToId provided!") unless sharedToId?
+    throw new Error("No shareToId provided!") unless shareToId?
     throw new Error("No secretId provided!") unless secretId?
     throw new Error("cannot start sharing shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
@@ -233,6 +243,8 @@ secretstoremodule.startSharingSecretTo = (nodeId, shareToId, secretId) ->
 
 secretstoremodule.stopSharingSecretTo = (nodeId, sharedToId, secretId) ->
     assertIdIsAvailable(nodeId)
+    throw new Error("No sharedToId provided!") unless sharedToId?
+    throw new Error("No secretId provided!") unless secretId?
     throw new Error("cannot stop sharing a shared secret here!") if isShared(secretId)
     node = idToSpaceMap[nodeId]
     if !node[secretId]? then return

@@ -11,7 +11,7 @@ debugmodule.modulesToDebug =
     # configmodule: true
     # keyutilmodule: true
     # persistentstatemodule: true
-    # scimodule: true
+    scimodule: true
     # secrethandlermodule: true
     # secretstoremodule: true
     # securitymodule: true
