@@ -10,7 +10,7 @@ debugmodule.modulesToDebug =
     unbreaker: true
     # configmodule: true
     # keyutilmodule: true
-    # persistentstatemodule: true
+    persistentstatemodule: true
     scimodule: true
     # secrethandlermodule: true
     # secretstoremodule: true
