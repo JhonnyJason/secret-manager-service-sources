@@ -31,15 +31,16 @@ secrethandlermodule.getEncryptedSecretSpace = (keyHex) ->
         bareString = JSON.stringify(bare)
         return await security.encrypt(bareString, keyHex) 
 
-secrethandlermodule.setSecret = (secretId, secretPlain, nodeId) ->
+secrethandlermodule.setSecret = (nodeId, secretId, secretPlain) ->
         log "secrethandlermodule.setSecret"
         ourSecret = await security.encrypt(secretPlain, nodeId)
         secretStore.setSecret(nodeId, secretId, ourSecret)
-        sharedTo = secretStore.getSharedTo(nodeId, secretId)
-        olog sharedTo
-        for sharedToId in sharedTo when typeof sharedToId == "string"
-            theirSecret = await security.encrypt(secretPlain, sharedToId)
-            secretStore.setSharedSecret(sharedToId, nodeId, secretId, theirSecret)
+        return
+
+secrethandlermodule.shareSecretTo = (fromId, shareToId, secretId, secretPlain) ->
+        log "secrethandlermodule.shareSecretTo"
+        theirSecret = await security.encrypt(secretPlain, shareToId)
+        secretStore.setSharedSecret(shareToId, fromId, secretId, theirSecret)
         return
 
 #endregion

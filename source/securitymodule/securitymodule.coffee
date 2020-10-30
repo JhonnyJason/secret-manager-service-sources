@@ -86,35 +86,7 @@ createSignature = (content) ->
 
 ############################################################
 #region exposedFunctions
-securitymodule.test = ->
-    log "securitymodule.test"
-
-    privateKeyOne = utl.extractRawKeyHex(privone)
-    log privateKeyOne
-    
-    # TODO figure out how to Match contents onto a point^^
-    content = "hello I am the fucking shithead of the shithead and all the sheetheads are deads fuckiers!!!"
-
-    log "- - - "
-    log "original content hex: " + content
-    log "- - - "
-
-    publicKeyOne = await primitives.getPublic(privateKeyOne)
-    # log "publicKeyOne: " + publicKeyOne
-
-    secrets = await primitives.asymetricEncrypt(content, publicKeyOne)
-    olog secrets
-
-    content = await primitives.asymetricDecrypt(secrets, privateKeyOne)
-    log "- - - "
-    log "result content hex: " + content
-    log "- - - "
-
-    process.exit(0)
-    return
-
-authenticateTest = (data) ->
-    log "authenticateTest"
+securitymodule.assertValidTimestamp = (timestamp) ->
     return
 
 securitymodule.authenticate = (data) ->

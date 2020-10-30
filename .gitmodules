@@ -1,3 +1,6 @@
 [submodule "source/persistentstatemodule"]
 	path = source/persistentstatemodule
 	url = git@github.com:JhonnyJason/service-sources-persistentstatemodule.git
+[submodule "source/scimodule"]
+	path = source/scimodule
+	url = git@github.com:JhonnyJason/service-sources-restscimodule.git
