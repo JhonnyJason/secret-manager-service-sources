@@ -99,6 +99,7 @@ sciroutes.shareSecretTo = (req, res) ->
             req.body.publicKey,
             req.body.shareToId,
             req.body.secretId,
+            req.body.secret
             req.body.timestamp, 
             req.body.signature
         )

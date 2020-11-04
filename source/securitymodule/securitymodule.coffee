@@ -89,7 +89,7 @@ createSignature = (content) ->
 securitymodule.assertValidTimestamp = (timestamp) ->
     return
 
-securitymodule.authenticate = (data) ->
+securitymodule.authenticate = (data, route) ->
     log "securitymodule.authenticate"
     idHex = data.publicKey
     sigHex = data.signature
@@ -97,7 +97,7 @@ securitymodule.authenticate = (data) ->
     if !idHex then throw new Error("No Public key!")
 
     delete data.signature
-    content = JSON.stringify(data)
+    content = route+JSON.stringify(data)
 
     try
         verified = await primitives.verify(sigHex, idHex, content)

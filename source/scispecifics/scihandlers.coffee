@@ -30,8 +30,10 @@ scihandlers.initialize = ->
 ############################################################
 scihandlers.authenticate = (req, res, next) ->
     try
+        log req.path
+        olog req.body
         security.assertValidTimestamp(req.body.timestamp)
-        await security.authenticate(req.body)
+        await security.authenticate(req.body, req.path)
         next()
     catch err then res.send({error: err.stack})
     return
@@ -79,7 +81,7 @@ scihandlers.stopAcceptingSecretsFrom = (publicKey, fromId, timestamp, signature)
 ############################################################
 scihandlers.shareSecretTo = (publicKey, shareToId, secretId, secret, timestamp, signature) ->
     log "shareSecretTo"
-    await secretHander.shareSecretTo(publicKey, shareToId, secretId, secret)
+    await secretHandler.shareSecretTo(publicKey, shareToId, secretId, secret)
     return {ok:true}
 
 scihandlers.deleteSharedSecret = (publicKey, sharedToId, secretId, timestamp, signature) ->

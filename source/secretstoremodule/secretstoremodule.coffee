@@ -116,6 +116,7 @@ getSharedSecret = (node, secretId) ->
     throw new Error("no secret from fromId!") unless node[fromKey]?
     node = node[fromKey]
     restKey = secretId.slice(65)
+    throw new Error("secret does not exist!") unless node[restKey]?
     return node[restKey]
 
 deleteSharedSecret = (node, secretId) ->
