@@ -10,55 +10,13 @@ print = (arg) -> console.log(arg)
 #endregion
 
 ############################################################
-#region sampleKeyPairs
-serverPriv = "5FE5F1D902D6B42E55B6E4E401E987C3F2BC7F95D33188863DE91760B7D58492"
-
-opensshpriv = """
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-    QyNTUxOQAAACC2miVG9g2q/dN1JpTV+N5mFhL2OGrf8HBvMBvNUbmtGgAAAJB5LjWzeS41
-    swAAAAtzc2gtZWQyNTUxOQAAACC2miVG9g2q/dN1JpTV+N5mFhL2OGrf8HBvMBvNUbmtGg
-    AAAEC9MC44MnM5nYOrrqrsIAW/GhXJ9/dZ06Q9Pzvl+k1duraaJUb2Dar903UmlNX43mYW
-    EvY4at/wcG8wG81Rua0aAAAACmxlbm55QG5vdmEBAgM=
-    -----END OPENSSH PRIVATE KEY-----
-    """
-opensshpub = """
-    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILaaJUb2Dar903UmlNX43mYWEvY4at/wcG8wG81Rua0a lenny@nova
-    """
-
-privone = """
-    -----BEGIN PRIVATE KEY-----
-    MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS
-    -----END PRIVATE KEY-----    
-    """
-privtwo = """
-    -----BEGIN PRIVATE KEY-----
-    MC4CAQAwBQYDK2VwBCIEIABaG2DGL4WE9niHPbdZtbmPOufhkqEJIibW1mlYsfXT
-    -----END PRIVATE KEY-----
-    """
-pubone = """
-    -----BEGIN PUBLIC KEY-----
-    MCowBQYDK2VwAyEAxyJH+dZqAh5Fib0ZiLdfqn6FQnxZFEwdLSUlLUWM+fs=
-    -----END PUBLIC KEY-----
-    """    
-pubtwo = """
-    -----BEGIN PUBLIC KEY-----
-    MCowBQYDK2VwAyEAPR4EQTQm/r/iLYNYEux8ixfAXMwpqtG6Z4HWoj4W+0w=
-    -----END PUBLIC KEY-----    
-    """
-
-signingKey = """-----BEGIN PRIVATE KEY-----
-    MC4CAQAwBQYDK2VwBCIEIF/l8dkC1rQuVbbk5AHph8PyvH+V0zGIhj3pF2C31YSS
-    -----END PRIVATE KEY-----"""
-#endregion
-
-############################################################
 crypto = require("crypto")
 noble = require("noble-ed25519")
 
 ############################################################
 utl = null
 
+############################################################
 #region internalProperties
 algorithm = 'aes-256-cbc'
 #endregion
@@ -98,6 +56,7 @@ hashToScalar = (hash) ->
 #region nativeVersions
 hexRawToBase64ASN1 = -> throw new Error("hexRawToBase64ASN1 - Not implemented!")
 
+############################################################
 verifyNative = (sigHex, keyHex) ->
     signatureBuffer = Buffer.from(sigBase64, "hex")
     contentBuffer  = Buffer.from(content, 'utf8')
@@ -199,40 +158,6 @@ securityprimitives.asymetricDecrypt = (secrets, privateKeyHex) ->
 
 ############################################################
 #region symetricEncryption
-securityprimitives.symetricEncryptBase64 = (content, keyHex) ->
-    ivHex = keyHex.substring(0, 32)
-    ivBuffer = Buffer.from(ivHex, "hex")
-    aesKeyHex = keyHex.substring(32,96)
-    aesKeyBuffer = Buffer.from(aesKeyHex, "hex")
-    # log "- - ivHex: "
-    # log ivHex
-    # log ivHex.length
-    # log "- - aesKeyHex: "
-    # log aesKeyHex
-    # log aesKeyHex.length
-
-    cipher = crypto.createCipheriv(algorithm, aesKeyBuffer, ivBuffer)
-    gibbrish = cipher.update(content, 'utf8', 'base64')
-    gibbrish += cipher.final('base64')
-    return gibbrish
-
-securityprimitives.symetricDecryptBase64 = (gibbrishBase64, keyHex) ->
-    ivHex = keyHex.substring(0, 32)
-    ivBuffer = Buffer.from(ivHex, "hex")
-    aesKeyHex = keyHex.substring(32,96)
-    aesKeyBuffer = Buffer.from(aesKeyHex, "hex")
-    # log "- - ivHex: "
-    # log ivHex
-    # log ivHex.length
-    # log "- - aesKeyHex: "
-    # log aesKeyHex
-    # log aesKeyHex.length
-
-    decipher = crypto.createDecipheriv(algorithm, aesKeyBuffer, ivBuffer)
-    content = decipher.update(gibbrishBase64, 'base64', 'utf8')
-    content += decipher.final('utf8')
-    return content
-
 securityprimitives.symetricEncryptHex = (content, keyHex) ->
     ivHex = keyHex.substring(0, 32)
     ivBuffer = Buffer.from(ivHex, "hex")
