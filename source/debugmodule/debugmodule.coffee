@@ -9,16 +9,13 @@ debugmodule.initialize = () ->
 debugmodule.modulesToDebug = 
     unbreaker: true
     # configmodule: true
-    # keyutilmodule: true
     # persistentstatemodule: true
     # scimodule: true
     scihandlers: true
     # secrethandlermodule: true
     # secretstoremodule: true
     # securitymodule: true
-    # securityprimitives: true
     # startupmodule: true
-    # telegrambotmodule: true
 
 
 export default debugmodule
