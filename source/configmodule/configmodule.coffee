@@ -12,5 +12,6 @@ configmodule.initialize = () ->
 ############################################################
 configmodule.persistentStateRelativeBasePath = "../state"
 configmodule.numberOfChachedEntries = 64
+configmodule.timestampValidityFrameMS = 20000
 
 export default configmodule
