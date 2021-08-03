@@ -11,15 +11,22 @@ print = (arg) -> console.log(arg)
 
 ############################################################
 secUtl = require("secret-manager-crypto-utils")
+tMS = 20000
 
 ############################################################
 securitymodule.initialize = () ->
     log "securitymodule.initialize"
+    c = allModules.configmodule
+    tMS = c.timestampValidityFrameMS
     return
 
 ############################################################
 #region exposedFunctions
 securitymodule.assertValidTimestamp = (timestamp) ->
+    now = Date.now()
+    now_rounded = now - (now%tMS)
+    if timestamp != now_rounded then now_rounded -= tMS
+    if timestamp != now_rounded then throw new Error("Invalid Timestamp!")
     return
 
 securitymodule.authenticate = (data, route) ->
