@@ -6,6 +6,7 @@ import secrethandlermodule from "./secrethandlermodule"
 import secretstoremodule from "./secretstoremodule"
 import securitymodule from "./securitymodule"
 import startupmodule from "./startupmodule"
+import validatabletimestampmodule from "./validatabletimestampmodule"
 
 Modules = {
     configmodule,
@@ -16,6 +17,7 @@ Modules = {
     secretstoremodule,
     securitymodule,
     startupmodule,
+    validatabletimestampmodule,
 }
 
 export default Modules

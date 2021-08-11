@@ -7,13 +7,7 @@ secretStore = require("./secretstoremodule")
 secretHandler = require("./secrethandlermodule")
 
 ############################################################
-scihandlers.authenticate = (req, res, next) ->
-    try
-        security.assertValidTimestamp(req.body.timestamp)
-        await security.authenticate(req.body, req.path)
-        next()
-    catch err then res.send({error: err.stack})
-    return
+scihandlers.authenticate = security.authenticateRequest
 
 #endregion
 
