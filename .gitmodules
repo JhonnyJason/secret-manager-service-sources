@@ -4,3 +4,6 @@
 [submodule "source/scimodule"]
 	path = source/scimodule
 	url = git@github.com:JhonnyJason/service-sources-restscimodule.git
+[submodule "source/specificinterfaces/secretmanagementinterface"]
+	path = source/specificinterfaces/secretmanagementinterface
+	url = git@github.com:JhonnyJason/secretmanagementinterface.git

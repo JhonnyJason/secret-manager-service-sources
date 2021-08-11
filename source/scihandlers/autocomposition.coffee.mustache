@@ -1,0 +1,31 @@
+scihandlers = {}
+
+############################################################
+#region 
+security = require("./securitymodule")
+secretStore = require("./secretstoremodule")
+secretHandler = require("./secrethandlermodule")
+
+############################################################
+scihandlers.authenticate = (req, res, next) ->
+    try
+        log req.path
+        olog req.body
+        security.assertValidTimestamp(req.body.timestamp)
+        await security.authenticate(req.body, req.path)
+        next()
+    catch err then res.send({error: err.stack})
+    return
+
+#endregion
+
+{{#components}}
+############################################################
+#region {{{name}}}.coffee
+{{{coffee}}}
+#endregion
+
+{{/components}}
+
+
+export default scihandlers
