@@ -12,20 +12,11 @@ print = (arg) -> console.log(arg)
 
 ############################################################
 #region internalProperties
-security = null
-secretStore = null
-secretHandler = null
+security = require("./securitymodule")
+secretStore = require("./secretstoremodule")
+secretHandler = require("./secrethandlermodule")
 
 #endregion
-
-############################################################
-scihandlers.initialize = ->
-    log "scihandlers.initialize"
-    security = allModules.securitymodule
-    secretStore = allModules.secretstoremodule
-    secretHandler = allModules.secrethandlermodule
-
-    return
 
 ############################################################
 scihandlers.authenticate = (req, res, next) ->
