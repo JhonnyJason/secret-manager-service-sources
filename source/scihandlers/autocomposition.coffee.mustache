@@ -9,8 +9,6 @@ secretHandler = require("./secrethandlermodule")
 ############################################################
 scihandlers.authenticate = (req, res, next) ->
     try
-        log req.path
-        olog req.body
         security.assertValidTimestamp(req.body.timestamp)
         await security.authenticate(req.body, req.path)
         next()
