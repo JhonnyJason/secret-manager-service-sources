@@ -26,22 +26,22 @@ secrethandlermodule.initialize = () ->
 ############################################################
 #region exposedFunctions
 secrethandlermodule.getEncryptedSecretSpace = (keyHex) ->
-        log "secrethandlermodule.getEncryptedSecretSpace"
-        bare = secretStore.getSecretSpace(keyHex)
-        bareString = JSON.stringify(bare)
-        return await security.encrypt(bareString, keyHex) 
+    log "secrethandlermodule.getEncryptedSecretSpace"
+    bare = secretStore.getSecretSpace(keyHex)
+    bareString = JSON.stringify(bare)
+    return await security.encrypt(bareString, keyHex) 
 
 secrethandlermodule.setSecret = (nodeId, secretId, secretPlain) ->
-        log "secrethandlermodule.setSecret"
-        ourSecret = await security.encrypt(secretPlain, nodeId)
-        secretStore.setSecret(nodeId, secretId, ourSecret)
-        return
+    log "secrethandlermodule.setSecret"
+    ourSecret = await security.encrypt(secretPlain, nodeId)
+    secretStore.setSecret(nodeId, secretId, ourSecret)
+    return
 
 secrethandlermodule.shareSecretTo = (fromId, shareToId, secretId, secretPlain) ->
-        log "secrethandlermodule.shareSecretTo"
-        theirSecret = await security.encrypt(secretPlain, shareToId)
-        secretStore.setSharedSecret(shareToId, fromId, secretId, theirSecret)
-        return
+    log "secrethandlermodule.shareSecretTo"
+    theirSecret = await security.encrypt(secretPlain, shareToId)
+    secretStore.setSharedSecret(shareToId, fromId, secretId, theirSecret)
+    return
 
 #endregion
 
