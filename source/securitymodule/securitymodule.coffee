@@ -1,4 +1,4 @@
-securitymodule = {name: "securitymodule"}
+securitymodule = {}
 ############################################################
 #region printLogFunctions
 log = (arg) ->
