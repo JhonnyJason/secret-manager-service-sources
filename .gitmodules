@@ -10,3 +10,6 @@
 [submodule "source/validatabletimestampmodule"]
 	path = source/validatabletimestampmodule
 	url = git@github.com:JhonnyJason/thingy-sources-validatabletimestampmodule.git
+[submodule "source/index"]
+	path = source/index
+	url = git@github.com:JhonnyJason/service-sources-index.git
