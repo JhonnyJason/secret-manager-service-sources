@@ -1,4 +1,3 @@
-secretstoremodule = {name: "secretstoremodule"}
 ############################################################
 #region printLogFunctions
 log = (arg) ->
@@ -18,8 +17,8 @@ cachedIds = []
 maxCacheSize = 0
 
 ############################################################
-secretstoremodule.initialize = () ->
-    log "secretstoremodule.initialize"
+export initialize = ->
+    log "export initialize"
     state = allModules.persistentstatemodule
     c = allModules.configmodule
     maxCacheSize = c.numberOfChachedEntries
@@ -133,7 +132,7 @@ deleteSharedSecret = (node, secretId) ->
 
 ############################################################
 #region exposedFunctions
-secretstoremodule.addNodeId = (nodeId) ->
+export addNodeId = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
     return unless !idToSpaceMap[nodeId]?
     addNewEntry(nodeId)
@@ -141,12 +140,12 @@ secretstoremodule.addNodeId = (nodeId) ->
     return
 
 ############################################################
-secretstoremodule.getSecretSpace = (nodeId) -> 
+export getSecretSpace = (nodeId) -> 
     throw new Error("No nodeId provided!") unless nodeId
     if idToSpaceMap[nodeId] == 1 then loadIntoCache(nodeId)
     return idToSpaceMap[nodeId]
 
-secretstoremodule.getSecret = (nodeId, secretId) ->
+export getSecret = (nodeId, secretId) ->
     assertIdIsAvailable(nodeId)
     throw new Error("No secretId provided!") unless secretId?
     node = idToSpaceMap[nodeId]
@@ -157,7 +156,7 @@ secretstoremodule.getSecret = (nodeId, secretId) ->
         return node.secret
 
 ############################################################
-secretstoremodule.setSecret = (nodeId, secretId, secret) ->
+export setSecret = (nodeId, secretId, secret) ->
     assertIdIsAvailable(nodeId)
     throw new Error("No secretId provided!") unless secretId?
     throw new Error("cannot set shared secret here!") if isShared(secretId)
@@ -168,7 +167,7 @@ secretstoremodule.setSecret = (nodeId, secretId, secret) ->
     saveState()
     return
 
-secretstoremodule.deleteSecret = (nodeId, secretId) ->
+export deleteSecret = (nodeId, secretId) ->
     assertIdIsAvailable(nodeId)
     throw new Error("No secretId provided!") unless secretId?
     node = idToSpaceMap[nodeId]
@@ -178,7 +177,7 @@ secretstoremodule.deleteSecret = (nodeId, secretId) ->
     return
 
 ############################################################
-secretstoremodule.addSubSpaceFor = (nodeId, fromId) ->
+export addSubSpaceFor = (nodeId, fromId) ->
     assertIdIsAvailable(nodeId)
     throw new Error("No fromId provided!") unless fromId?
 
@@ -188,7 +187,7 @@ secretstoremodule.addSubSpaceFor = (nodeId, fromId) ->
     saveState()
     return
 
-secretstoremodule.removeSubSpaceFor = (nodeId, fromId) ->
+export removeSubSpaceFor = (nodeId, fromId) ->
     assertIdIsAvailable(nodeId)
     throw new Error("No fromId provided!") unless fromId?
 
@@ -199,7 +198,7 @@ secretstoremodule.removeSubSpaceFor = (nodeId, fromId) ->
     return
 
 ############################################################
-secretstoremodule.setSharedSecret = (nodeId, fromId, secretId, secret) ->
+export setSharedSecret = (nodeId, fromId, secretId, secret) ->
     assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     throw new Error("no secrets accepted from fromId!") unless node[fromId]?
@@ -208,7 +207,7 @@ secretstoremodule.setSharedSecret = (nodeId, fromId, secretId, secret) ->
     saveState()
     return
 
-secretstoremodule.deleteSharedSecret = (nodeId, fromId, secretId) ->
+export deleteSharedSecret = (nodeId, fromId, secretId) ->
     assertIdIsAvailable(nodeId)
     node = idToSpaceMap[nodeId]
     throw new Error("no secrets accepted from fromId!") unless node[fromId]?
@@ -219,4 +218,3 @@ secretstoremodule.deleteSharedSecret = (nodeId, fromId, secretId) ->
 
 #endregion
 
-module.exports = secretstoremodule

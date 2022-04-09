@@ -2,9 +2,9 @@ scihandlers = {}
 
 ############################################################
 #region 
-security = require("./securitymodule")
-secretStore = require("./secretstoremodule")
-secretHandler = require("./secrethandlermodule")
+import * as security from "./securitymodule.js"
+import * as secretStore from "./secretstoremodule"
+import * as secretHandler from "./secrethandlermodule"
 
 ############################################################
 scihandlers.authenticate = security.authenticateRequest

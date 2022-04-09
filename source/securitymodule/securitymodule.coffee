@@ -1,4 +1,3 @@
-securitymodule = {}
 ############################################################
 #region printLogFunctions
 log = (arg) ->
@@ -10,39 +9,43 @@ print = (arg) -> console.log(arg)
 #endregion
 
 ############################################################
-secUtl = require("secret-manager-crypto-utils")
-timestampVerifier = require("./validatabletimestampmodule")
+import * as secUtl from "secret-manager-crypto-utils"
+import * as timestampVerifier from "./validatabletimestampmodule.js"
 
 
 ############################################################
 #region exposedFunctions
-securitymodule.authenticateRequest = (req, res, next) ->
+export authenticateRequest = (req, res, next) ->
     log "securitymodule.authenticate"
     
     data = req.body
     idHex = data.publicKey
     sigHex = data.signature
     timestamp = data.timestamp
-
-    if !timestamp then throw new Error("No Timestamp!") 
-    if !sigHex then throw new Error("No Signature!")
-    if !idHex then throw new Error("No Public key!")
-
-    # will throw if timestamp is not valid 
-    timestampVerifier.assertValidity(timestamp) 
-    
-    delete data.signature
-    content = req.path+JSON.stringify(data)
-
     try
+
+        if !timestamp then throw new Error("No Timestamp!") 
+        if !sigHex then throw new Error("No Signature!")
+        if !idHex then throw new Error("No Public key!")
+
+        olog data
+        olog idHex
+        olog sigHex
+        olog timestamp
+        # will throw if timestamp is not valid 
+        timestampVerifier.assertValidity(timestamp) 
+        
+        delete data.signature
+        content = req.path+JSON.stringify(data)
+
         verified = await secUtl.verify(sigHex, idHex, content)
         if !verified then throw new Error("Invalid Signature!")
         else next()
-    catch err then throw new Error("Error on Verify! " + err)
+    catch err then next(new Error("Error on Verify! " + err))
     return
 
 
-securitymodule.encrypt = (content, keyHex) ->
+export encrypt = (content, keyHex) ->
     log "securitymodule.encrypt"
     salt = secUtl.createRandomLengthSalt()
     content = salt + content
@@ -55,5 +58,3 @@ securitymodule.encrypt = (content, keyHex) ->
     return secrets
     
 #endregion
-
-module.exports = securitymodule

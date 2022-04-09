@@ -1,12 +1,12 @@
-import configmodule from "./configmodule"
-import debugmodule from "./debugmodule"
-import persistentstatemodule from "./persistentstatemodule"
-import scimodule from "./scimodule"
-import secrethandlermodule from "./secrethandlermodule"
-import secretstoremodule from "./secretstoremodule"
-import securitymodule from "./securitymodule"
-import startupmodule from "./startupmodule"
-import validatabletimestampmodule from "./validatabletimestampmodule"
+import * as configmodule from "./configmodule.js"
+import * as debugmodule from "./debugmodule.js"
+import * as persistentstatemodule from "./persistentstatemodule.js"
+import * as scimodule from "./scimodule.js"
+import * as secrethandlermodule from "./secrethandlermodule.js"
+import * as secretstoremodule from "./secretstoremodule.js"
+import * as securitymodule from "./securitymodule.js"
+import * as startupmodule from "./startupmodule.js"
+import * as validatabletimestampmodule from "./validatabletimestampmodule.js"
 
 Modules = {
     configmodule,
