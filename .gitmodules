@@ -10,3 +10,6 @@
 [submodule "source/index"]
 	path = source/index
 	url = git@github.com:JhonnyJason/service-sources-index.git
+[submodule "source/secretmanagementinterface"]
+	path = source/secretmanagementinterface
+	url = git@github.com:JhonnyJason/secretmanagementinterface.git
