@@ -51,7 +51,7 @@ export encrypt = (content, keyHex) ->
     content = salt + content
     # log "prepended salt: " + content
     # log "separation code: " + content.charCodeAt(salt.length - 1)  
-    secrets = await secUtl.asymetricEncrypt(content, keyHex)
+    secrets = await secUtl.asymmetricEncrypt(content, keyHex)
 
     log "- - - secrets: "
     olog secrets
