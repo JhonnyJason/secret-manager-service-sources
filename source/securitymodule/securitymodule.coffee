@@ -29,9 +29,9 @@ export authenticateRequest = (req, res, next) ->
         if !idHex then throw new Error("No Public key!")
 
         olog data
-        olog idHex
-        olog sigHex
-        olog timestamp
+        # olog idHex
+        # olog sigHex
+        # olog timestamp
         # will throw if timestamp is not valid 
         timestampVerifier.assertValidity(timestamp) 
         
@@ -41,7 +41,9 @@ export authenticateRequest = (req, res, next) ->
         verified = await secUtl.verify(sigHex, idHex, content)
         if !verified then throw new Error("Invalid Signature!")
         else next()
-    catch err then next(new Error("Error on Verify! " + err))
+    catch err 
+        log("Error on Verify! " + err)
+        res.status(401).end()
     return
 
 

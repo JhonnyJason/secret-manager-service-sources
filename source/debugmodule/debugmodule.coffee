@@ -3,9 +3,8 @@ export modulesToDebug =
     unbreaker: true
     # configmodule: true
     # persistentstatemodule: true
-    # scimodule: true
-    scihandlers: true
+    scimodule: true
     # secrethandlermodule: true
     # secretstoremodule: true
-    securitymodule: true
+    # securitymodule: true
     # startupmodule: true
