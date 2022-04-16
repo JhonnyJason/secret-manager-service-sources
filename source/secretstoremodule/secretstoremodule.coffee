@@ -69,6 +69,11 @@ addNewEntry = (id) ->
     printState()
     return
 
+removeEntry = (id) ->
+    log "removeEntry: "+ id
+    delete idToSpaceMap[id]
+    ## remove from cache...
+
 loadIntoCache = (id) ->
     log "loadIntoCache: "+id
     return unless idToSpaceMap[id]?
@@ -138,6 +143,14 @@ export addNodeId = (nodeId) ->
     addNewEntry(nodeId)
     saveState()
     return
+
+export removeNodeId = (nodeId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    return unless idToSpaceMap[nodeId]?
+    addNewEntry(nodeId)
+    saveState()
+    return
+
 
 ############################################################
 export getSecretSpace = (nodeId) -> 
