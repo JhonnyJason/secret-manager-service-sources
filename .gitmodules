@@ -1,6 +1,3 @@
-[submodule "source/persistentstatemodule"]
-	path = source/persistentstatemodule
-	url = git@github.com:JhonnyJason/service-sources-persistentstatemodule.git
 [submodule "source/validatabletimestampmodule"]
 	path = source/validatabletimestampmodule
 	url = git@github.com:JhonnyJason/thingy-sources-validatabletimestampmodule.git

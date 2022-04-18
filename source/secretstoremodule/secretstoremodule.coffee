@@ -13,12 +13,9 @@ state = null
 
 ############################################################
 idToSpaceMap = {}
-cachedIds = []
-maxCacheSize = 0
 
 ############################################################
 export initialize = ->
-    log "export initialize"
     state = allModules.persistentstatemodule
     c = allModules.configmodule
     maxCacheSize = c.numberOfChachedEntries
