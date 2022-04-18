@@ -9,126 +9,31 @@ print = (arg) -> console.log(arg)
 #endregion
 
 ############################################################
-state = null
-
-############################################################
-idToSpaceMap = {}
-
-############################################################
-export initialize = ->
-    state = allModules.persistentstatemodule
-    c = allModules.configmodule
-    maxCacheSize = c.numberOfChachedEntries
-
-    idToSpaceMap = state.load("idToSpaceMap")
-    assertCleanCachedState()
-    printState()
-    return
+import * as state from "cached-persistentstate"
 
 ############################################################
 #region internalFunctions
-printState = ->
-    log "printState"
-    olog idToSpaceMap
-    olog cachedIds
-    log " - - - "
-    return
-
-processUnexpected = (err) -> throw err
-
-############################################################
-#region caching helpers
-assertCleanCachedState = ->
-    allIds = Object.keys(idToSpaceMap)
-    if cachedIds.length == 0
-        for id in allIds
-            if cachedIds.length == maxCacheSize
-                if idToSpaceMap[id] != 1 then removeFromCache(id)
-            else if idToSpaceMap[id] != 1
-                cachedIds.push(id)
-                state.save(id, idToSpaceMap[id])
-    ## else TODO or maybe not relevant if it is only used on initialize        
-    saveState()
-    return
-
-assertIdIsAvailable = (id) ->
-    throw new Error("No nodeId provided!") unless id
-    throw new Error("unknown nodeId!") unless idToSpaceMap[id]?
-    if idToSpaceMap[id] == 1 then loadIntoCache(id)
-    return
-
-addNewEntry = (id) ->
-    log "addNewEntry: "+id
-    idToSpaceMap[id] = {}
-    state.save(id, idToSpaceMap[id])
-    cachedIds.push(id)
-    cacheRemoveExcess()
-    printState()
-    return
-
-removeEntry = (id) ->
-    log "removeEntry: "+ id
-    delete idToSpaceMap[id]
-    ## remove from cache...
-
-loadIntoCache = (id) ->
-    log "loadIntoCache: "+id
-    return unless idToSpaceMap[id]?
-    index = cachedIds.indexOf(id)
-    if index > 0 then cachedIds.splice(index, 1)
-    idToSpaceMap[id] = state.load(id)
-    cachedIds.push(id)
-    cacheRemoveExcess()
-    printState()
-    return
-
-removeFromCache = (id) ->
-    log "removeFromCache: "+id
-    if !idToSpaceMap[id]? then throw new Error("Id to removeFromCache does not exist!")
-    state.save(id, idToSpaceMap[id])
-    state.uncache(id)
-    idToSpaceMap[id] = 1
-    return
-
-cacheRemoveExcess = ->
-    excess = cachedIds.length - maxCacheSize
-    return if excess <= 0
-    while excess--
-        id = cachedIds.shift()
-        removeFromCache(id)
-    return
-
-saveState = ->
-    try state.save("idToSpaceMap", idToSpaceMap)
-    catch err then processUnexpected err
-    return
-
-#endregion
-
-############################################################
-#region secret sharing helpers
 isShared = (id) ->
     if id.length < 65 then return false
     if id.charAt(64) != "." then return false
     return true
 
-getSharedSecret = (node, secretId) ->
+getSharedSecret = (secretSpace, secretId) ->
     fromKey = secretId.slice(0,64)
-    throw new Error("no secret from fromId!") unless node[fromKey]?
-    node = node[fromKey]
+    throw new Error("no secret from fromId!") unless secretSpace[fromKey]?
+    subSpace = secretSpace[fromKey]
     restKey = secretId.slice(65)
-    throw new Error("secret does not exist!") unless node[restKey]?
-    return node[restKey]
+    throw new Error("secret does not exist!") unless subSpace[restKey]?
+    return subSpace[restKey]
 
-deleteSharedSecret = (node, secretId) ->
+deleteSharedSecret = (secretSpace, secretId) ->
     fromKey = secretId.slice(0,64)
-    throw new Error("no secret from fromId!") unless node[fromKey]?
-    node = node[fromKey]
+    throw new Error("no secret from fromId!") unless secretSpace[fromKey]?
+    subSpace = secretSpace[fromKey]
     restKey = secretId.slice(65)
-    delete node[restKey]
+    delete subSpace[restKey]
     return 
 
-#endregion
 
 #endregion
 
@@ -136,94 +41,84 @@ deleteSharedSecret = (node, secretId) ->
 #region exposedFunctions
 export addNodeId = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
-    return unless !idToSpaceMap[nodeId]?
-    addNewEntry(nodeId)
-    saveState()
+    secretSpace = state.load(nodeId)
+    ## TODO setup basicSecretSpace
     return
 
 export removeNodeId = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
-    return unless idToSpaceMap[nodeId]?
-    addNewEntry(nodeId)
-    saveState()
+    state.remove(nodeId)
     return
 
 
 ############################################################
 export getSecretSpace = (nodeId) -> 
     throw new Error("No nodeId provided!") unless nodeId
-    if idToSpaceMap[nodeId] == 1 then loadIntoCache(nodeId)
-    return idToSpaceMap[nodeId]
+    return state.load(nodeId)
 
 export getSecret = (nodeId, secretId) ->
-    assertIdIsAvailable(nodeId)
     throw new Error("No secretId provided!") unless secretId?
-    node = idToSpaceMap[nodeId]
-    if isShared(secretId) then return getSharedSecret(node, secretId)
+    secretSpace = state.load(nodeId)
+    if isShared(secretId) then return getSharedSecret(secretSpace, secretId)
     else
-        throw new Error("secret does not exist!") unless node[secretId]?
-        node = node[secretId]
-        return node.secret
+        throw new Error("Secret with secretId does not exist!") unless secretSpace[secretId]?
+        container = secretSpace[secretId]
+        return container.secret
 
 ############################################################
 export setSecret = (nodeId, secretId, secret) ->
-    assertIdIsAvailable(nodeId)
     throw new Error("No secretId provided!") unless secretId?
     throw new Error("cannot set shared secret here!") if isShared(secretId)
-    node = idToSpaceMap[nodeId]
-    if !node[secretId]? then node[secretId] = {}
-    node = node[secretId]
-    node.secret = secret
-    saveState()
+    secretSpace = state.load(nodeId)
+    ##TODO check if space is legit
+    if !secretSpace[secretId]? then secretSpace[secretId] = {}
+    container = secretSpace[secretId]
+    container.secret = secret
+    state.save(nodeId)
     return
 
 export deleteSecret = (nodeId, secretId) ->
-    assertIdIsAvailable(nodeId)
     throw new Error("No secretId provided!") unless secretId?
-    node = idToSpaceMap[nodeId]
-    if isShared(secretId) then return deleteSharedSecret(node, secretId)
-    else delete node[secretId] if node[secretId]?
-    saveState()
+    secretSpace = state.load(nodeId)
+    if isShared(secretId) then return deleteSharedSecret(secretSpace, secretId)
+    else delete secretSpace[secretId] if secretSpace[secretId]?
+    state.save(nodeId)
     return
 
 ############################################################
 export addSubSpaceFor = (nodeId, fromId) ->
-    assertIdIsAvailable(nodeId)
     throw new Error("No fromId provided!") unless fromId?
 
-    node = idToSpaceMap[nodeId]
-    return unless !node[fromId]?
-    node[fromId] = {}
-    saveState()
+    secretSpace = state.load(nodeId)
+    return if secretSpace[fromId]?
+    secretSpace[fromId] = {}
+    state.save(nodeId)
     return
 
 export removeSubSpaceFor = (nodeId, fromId) ->
-    assertIdIsAvailable(nodeId)
     throw new Error("No fromId provided!") unless fromId?
 
-    node = idToSpaceMap[nodeId]
-    return unless node[fromId]?
-    delete node[fromId]
-    saveState()
+    secretSpace = state.load(nodeId)
+    return unless secretSpace[fromId]?
+    delete secretSpace[fromId]
+    state.save(nodeId)
     return
 
 ############################################################
 export setSharedSecret = (nodeId, fromId, secretId, secret) ->
-    assertIdIsAvailable(nodeId)
-    node = idToSpaceMap[nodeId]
-    throw new Error("no secrets accepted from fromId!") unless node[fromId]?
-    node = node[fromId]
-    node[secretId] = secret
-    saveState()
+    secretSpace = state.load(nodeId)
+    throw new Error("No secrets accepted!") unless secretSpace[fromId]?
+    subSpace = secretSpace[fromId]
+    subSpace[secretId] = secret
+    state.save(nodeId)
     return
 
 export deleteSharedSecret = (nodeId, fromId, secretId) ->
-    assertIdIsAvailable(nodeId)
-    node = idToSpaceMap[nodeId]
-    throw new Error("no secrets accepted from fromId!") unless node[fromId]?
-    node = node[fromId]
-    delete node[secretId]
-    saveState()
+    secretSpace = state.load(nodeId)
+    throw new Error("no secrets accepted from fromId!") unless secretSpace[fromId]?
+    subSpace = secretSpace[fromId]
+    delete subSpace[secretId]
+    state.save(nodeId)
     return
 
 #endregion

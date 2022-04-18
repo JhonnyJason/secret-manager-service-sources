@@ -1,4 +1,6 @@
 
 ############################################################
-export persistentStateRelativeBasePath = "../state"
-export numberOfChachedEntries = 64
+export persistentStateOptions = {
+    basePath: "../state"
+    maxCacheSize: 128
+}

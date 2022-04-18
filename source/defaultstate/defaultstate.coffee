@@ -1,0 +1,4 @@
+export regularState = {
+    secretKeyHex: ""
+    publicKeyHex: ""
+}
