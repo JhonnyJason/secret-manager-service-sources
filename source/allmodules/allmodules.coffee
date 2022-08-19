@@ -1,3 +1,4 @@
+import * as authcodemodule from "./authcodemodule.js"
 import * as configmodule from "./configmodule.js"
 import * as debugmodule from "./debugmodule.js"
 import * as scimodule from "./scimodule.js"
@@ -8,6 +9,7 @@ import * as startupmodule from "./startupmodule.js"
 import * as validatabletimestampmodule from "./validatabletimestampmodule.js"
 
 Modules = {
+    authcodemodule,
     configmodule,
     debugmodule,
     scimodule,

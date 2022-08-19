@@ -1,11 +1,7 @@
 ############################################################
-#region printLogFunctions
-log = (arg) ->
-    if allModules.debugmodule.modulesToDebug["securitymodule"]?  then console.log "[securitymodule]: " + arg
-    return
-ostr = (obj) -> JSON.stringify(obj, null, 4)
-olog = (obj) -> log "\n" + ostr(obj)
-print = (arg) -> console.log(arg)
+#region debug
+import { createLogFunctions } from "thingy-debug"
+{log, olog} = createLogFunctions("securitymodule")
 #endregion
 
 ############################################################
@@ -16,7 +12,7 @@ import * as timestampVerifier from "./validatabletimestampmodule.js"
 ############################################################
 #region exposedFunctions
 export authenticateRequest = (req, res, next) ->
-    log "securitymodule.authenticate"
+    log "authenticate"
     
     data = req.body
     idHex = data.publicKey

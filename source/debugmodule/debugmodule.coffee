@@ -1,3 +1,5 @@
+import { addModulesToDebug } from "thingy-debug"
+
 ############################################################
 export modulesToDebug = 
     unbreaker: true
@@ -7,4 +9,6 @@ export modulesToDebug =
     # secrethandlermodule: true
     # secretstoremodule: true
     # securitymodule: true
-    # startupmodule: true
+    startupmodule: true
+    
+addModulesToDebug(modulesToDebug)
