@@ -18,6 +18,7 @@ export authenticateRequest = (req, res, next) ->
     idHex = data.publicKey
     sigHex = data.signature
     timestamp = data.timestamp
+
     try
 
         if !timestamp then throw new Error("No Timestamp!") 
@@ -37,6 +38,8 @@ export authenticateRequest = (req, res, next) ->
         verified = await secUtl.verify(sigHex, idHex, content)
         if !verified then throw new Error("Invalid Signature!")
         else next()
+        log "we did call next!"
+
     catch err 
         log("Error on Verify! " + err)
         res.status(401).end()

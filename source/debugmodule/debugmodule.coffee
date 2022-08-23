@@ -8,7 +8,7 @@ export modulesToDebug =
     scimodule: true
     # secrethandlermodule: true
     # secretstoremodule: true
-    # securitymodule: true
+    securitymodule: true
     startupmodule: true
     
 addModulesToDebug(modulesToDebug)
