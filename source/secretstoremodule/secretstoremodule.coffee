@@ -35,20 +35,22 @@ deleteSharedSecret = (secretSpace, secretId) ->
 
 ############################################################
 #region exposedFunctions
-export addNodeId = (nodeId) ->
+export createSpaceFor = (nodeId, closureDate) ->
     throw new Error("No nodeId provided!") unless nodeId
-    secretSpace = state.load(nodeId)
+    space = state.load(nodeId)
+
+    # if space! and space
     ## TODO setup basicSecretSpace
     return
 
-export removeNodeId = (nodeId) ->
+export removeSpaceFor = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
     state.remove(nodeId)
     return
 
 
 ############################################################
-export getSecretSpace = (nodeId) -> 
+export getSpaceFor = (nodeId) -> 
     throw new Error("No nodeId provided!") unless nodeId
     return state.load(nodeId)
 

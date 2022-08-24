@@ -6,16 +6,16 @@ import { createLogFunctions } from "thingy-debug"
 
 
 ############################################################
-import * as state from "cached-persistentstate"
+import * as cachedData from "cached-persistentstate"
 
 ############################################################
-import *  as sci from "./scimodule.js"
-import * as defaultState from "./defaultstate.js"
+import * as sci from "./scimodule.js"
 import { persistentStateOptions } from "./configmodule.js"
+import * as defaultstate from "./defaultstate.js"
+persistentStateOptions.defaultstate = defaultstate
 
 ############################################################
-persistentStateOptions.defaultState = defaultState
-state.initialize(persistentStateOptions)
+cachedData.initialize(persistentStateOptions)
 
 ############################################################
 export serviceStartup = ->

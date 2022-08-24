@@ -1,0 +1,42 @@
+############################################################
+#region debug
+import { createLogFunctions } from "thingy-debug"
+{log, olog} = createLogFunctions("servicekeysmodule")
+#endregion
+
+############################################################
+import * as cachedData from "cached-persistentstate"
+import * as secUtl from "secret-manager-crypto-utils"
+
+############################################################
+serviceState = null
+
+############################################################
+export initialize = ->
+    log "initialize"
+    serviceState = cachedData.load("serviceState")
+    olog serviceState
+    
+    if !serviceState.secretKeyHex
+        kp = await secUtl.createKeyPairHex()
+        serviceState.secretKeyHex = kp.secretKeyHex
+        serviceState.publicKeyHex = kp.publicKeyHex
+        cachedData.save("serviceState")
+
+    olog serviceState
+    return
+
+############################################################
+export getServerPub = -> serviceState.publicKeyHex
+
+############################################################
+export sign = (content) ->
+    keyHex = serviceState.secretKeyHex
+    signatureHex = await secUtl.createSignatureHex(content, keyHex)
+    return signatureHex
+
+############################################################
+export verify = (sigHex, content) ->
+    pubHex = serviceState.publicKeyHex
+    result = await secUtl.verifyHex(sigHex, pubHex, content)
+    return result

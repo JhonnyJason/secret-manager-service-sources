@@ -22,7 +22,7 @@ export initialize = ->
 #region exposedFunctions
 export getEncryptedSecretSpace = (keyHex) ->
     log "getEncryptedSecretSpace"
-    bare = secretStore.getSecretSpace(keyHex)
+    bare = secretStore.getSpaceFor(keyHex)
     bareString = JSON.stringify(bare)
     return await security.encrypt(bareString, keyHex) 
 
