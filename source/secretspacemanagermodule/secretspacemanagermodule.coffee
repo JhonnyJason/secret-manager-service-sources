@@ -4,19 +4,22 @@ import { createLogFunctions } from "thingy-debug"
 {log, olog} = createLogFunctions("secretspacemanagermodule")
 #endregion
 
+############################################################
 import * as dataCache from "cached-persistentstate"
+import * as serviceCrypto from "./servicekeysmodule.js"
+import nodeCrypto from "crypto"
 
 ############################################################
 class SecretSpace
-    constructor: (@id, closureDate) ->
+    constructor: (@id, closureDate, owner) ->
         @data = dataCache.load(@id)
 
         if @data.meta?
-            @validate()
             @meta = @data.meta
             @secrets = @data.secrets
             @subSpaces = @data.subSpaces
             if closureDate? then throw new Error("Updating the closureDate is not allowed!")
+            @valid = @validate()
 
         else # new space has been created
             @data.meta = {}
@@ -30,48 +33,47 @@ class SecretSpace
             if closureDate? then @meta.closureDate = closureDate
             else @meta.closureDate = 0
             
-            # @meta.serverPub = #TODO get server publicKey
+            @meta.serverPub = serviceCrypto.getPublicKeyHex()
             @meta.logTo = ""
             @meta.communication = ""
-            @meta.ownerBy = "" #TODO figure out potential owner from authCode
+            if owner? then @meta.ownedBy = owner
+            else @meta.ownedBy = ""
             
-            @sign()
-            dataCache.save(@id)
+            @valid = true
+            @save()
 
 
+    validate: ->
+        log "SecretSpace.validate"
+        signature = @meta.serverSig
+        @meta.serverSig = ""
+        spaceString = JSON.stringify(@data)
+        @meta.serverSig = signature
+        return await serviceCrypto.verify(signature, spaceString)
 
-        validate: ->
-            signature = @meta.serverSig
+    save: ->
+        log "SecretSpace.sign"
+        try
             @meta.serverSig = ""
-            spaceString = JSON.stringify(@data)
-            ##TODO verify signature
-            return
-
-        sign: ->
-            log "SecretSpace.sign"
-            @meta.serverSig = ""
+            @meta.noise = await getNoiseString()
             spaceString = JSON.stringify(@data)
             log spaceString
-            #TODO get signature
-            return
-
+            @meta.serverSig = await serviceCrypto.sign(spaceString)
+            dataCache.save(@id)
+        catch err then log("SecretSpace could not save: "+err.message)
+        return
         
-
-        
-
-
-
 ############################################################
-export initialize = ->
-    log "initialize"
-    #Implement or Remove :-)
-    return
+getNoiseString = -> nodeCrypto.randomBytes(32).toString("hex")
 
 ############################################################
 export createSpaceFor = (nodeId, closureDate) ->
     log "createSpaceFor"
     throw new Error("No nodeId provided!") unless nodeId
-    new SecretSpace(nodeId)
+    secretSpace = new SecretSpace(nodeId)
+    isValid = await secretSpace.valid
+    log isValid
+    if !isValid then throw new Error("SecretSpace got corrupted!")
     return
 
 export removeSpaceFor = (nodeId) ->

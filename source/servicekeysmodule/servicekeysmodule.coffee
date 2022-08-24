@@ -27,7 +27,7 @@ export initialize = ->
     return
 
 ############################################################
-export getServerPub = -> serviceState.publicKeyHex
+export getPublicKeyHex = -> serviceState.publicKeyHex
 
 ############################################################
 export sign = (content) ->
