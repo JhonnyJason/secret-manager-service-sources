@@ -15,9 +15,9 @@ import * as security from "./securitymodule.js"
 #region exposedFunctions
 export getEncryptedSecretSpace = (keyHex) ->
     log "getEncryptedSecretSpace"
-    space = spaceManager.getSpaceFor(keyHex)
-    spaceString = JSON.stringify(bare)
-    return await security.encrypt(spaceString, keyHex) 
+    secretSpace = spaceManager.getSpaceFor(keyHex)
+    secretSpaceString = JSON.stringify(secretSpace)
+    return await security.encrypt(secretSpaceString, keyHex) 
 
 export setSecretEncryptedly = (nodeId, secretId, secretPlain) ->
     log "setSecretEncryptedly"
