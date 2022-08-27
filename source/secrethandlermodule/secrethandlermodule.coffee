@@ -5,37 +5,30 @@ import { createLogFunctions } from "thingy-debug"
 #endregion
 
 ############################################################
-#region localModules
-secretStore = null
-security = null
+#region imports
+import * as spaceManager from "./secretspacemanagermodule.js"
+import * as security from "./securitymodule.js"
 
 #endregion
-
-############################################################
-export initialize = ->
-    log "initialize"
-    secretStore = allModules.secretstoremodule
-    security = allModules.securitymodule
-    return
 
 ############################################################
 #region exposedFunctions
 export getEncryptedSecretSpace = (keyHex) ->
     log "getEncryptedSecretSpace"
-    bare = secretStore.getSpaceFor(keyHex)
-    bareString = JSON.stringify(bare)
-    return await security.encrypt(bareString, keyHex) 
+    space = spaceManager.getSpaceFor(keyHex)
+    spaceString = JSON.stringify(bare)
+    return await security.encrypt(spaceString, keyHex) 
 
-export setSecret = (nodeId, secretId, secretPlain) ->
-    log "setSecret"
+export setSecretEncryptedly = (nodeId, secretId, secretPlain) ->
+    log "setSecretEncryptedly"
     ourSecret = await security.encrypt(secretPlain, nodeId)
-    secretStore.setSecret(nodeId, secretId, ourSecret)
+    spaceManager.setSecret(nodeId, secretId, ourSecret)
     return
 
-export shareSecretTo = (fromId, shareToId, secretId, secretPlain) ->
-    log "shareSecretTo"
+export shareSecretToEncryptedly = (fromId, shareToId, secretId, secretPlain) ->
+    log "shareSecretToEncryptedly"
     theirSecret = await security.encrypt(secretPlain, shareToId)
-    secretStore.setSharedSecret(shareToId, fromId, secretId, theirSecret)
+    spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret)
     return
 
 #endregion

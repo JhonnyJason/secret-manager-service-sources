@@ -5,4 +5,4 @@ export persistentStateOptions = {
     maxCacheSize: 128
 }
 
-export validationTimeFrameMS = 1000000
+export validationTimeFrameMS = 10000

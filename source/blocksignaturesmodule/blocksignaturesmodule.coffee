@@ -23,10 +23,17 @@ export initialize = ->
 
 ############################################################
 export assertAndBlock = (sig) ->
-    log "assertAndBlock"
+    log "assertAndBlock: "+sig
     if blocked[sig] then throw new Error("Multiple use of signature detected!")
-    blocked[sig] =  true
-    unblock = (sig) -> delete blocked[sig] 
+    
+    # do block!
+    blocked[sig] = true
+    
+    unblock = -> 
+        log "unblocking: "+sig
+        delete blocked[sig] 
+        return
+
     setTimeout(unblock, signatureBlockingTimeMS)
     olog blocked
     return
