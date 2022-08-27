@@ -3,6 +3,7 @@ import { addModulesToDebug } from "thingy-debug"
 ############################################################
 export modulesToDebug = 
     unbreaker: true
+    blocksignaturesmodule: true
     # configmodule: true
     # persistentstatemodule: true
     scimodule: true
@@ -10,7 +11,7 @@ export modulesToDebug =
     # secretstoremodule: true
     secretspacemanagermodule: true
     securitymodule: true
-    servicekeysmodule: true
+    # servicekeysmodule: true
     startupmodule: true
     
 addModulesToDebug(modulesToDebug)

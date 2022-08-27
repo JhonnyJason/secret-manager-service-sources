@@ -7,6 +7,7 @@ import { createLogFunctions } from "thingy-debug"
 ############################################################
 import * as secUtl from "secret-manager-crypto-utils"
 import * as timestampVerifier from "./validatabletimestampmodule.js"
+import * as blocker from "./blocksignaturesmodule.js"
 
 
 ############################################################
@@ -29,6 +30,10 @@ export authenticateRequest = (req, res, next) ->
         # olog idHex
         # olog sigHex
         # olog timestamp
+
+        # assert that the signature has not been used yet
+        blocker.assertAndBlock(sigHex)
+
         # will throw if timestamp is not valid 
         timestampVerifier.assertValidity(timestamp) 
         

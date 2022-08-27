@@ -15,7 +15,7 @@ serviceState = null
 export initialize = ->
     log "initialize"
     serviceState = cachedData.load("serviceState")
-    olog serviceState
+    # olog serviceState
     
     if !serviceState.secretKeyHex
         kp = await secUtl.createKeyPairHex()
@@ -23,7 +23,7 @@ export initialize = ->
         serviceState.publicKeyHex = kp.publicKeyHex
         cachedData.save("serviceState")
 
-    olog serviceState
+    # olog serviceState
     return
 
 ############################################################
