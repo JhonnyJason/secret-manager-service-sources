@@ -3,7 +3,7 @@ import * as blocksignaturesmodule from "./blocksignaturesmodule.js"
 import * as configmodule from "./configmodule.js"
 import * as debugmodule from "./debugmodule.js"
 import * as scimodule from "./scimodule.js"
-import * as secrethandlermodule from "./secrethandlermodule.js"
+import * as secretencryptionmodule from "./secretencryptionmodule.js"
 import * as secretspacemanagermodule from "./secretspacemanagermodule.js"
 import * as secretstoremodule from "./secretstoremodule.js"
 import * as securitymodule from "./securitymodule.js"
@@ -17,7 +17,7 @@ Modules = {
     configmodule,
     debugmodule,
     scimodule,
-    secrethandlermodule,
+    secretencryptionmodule,
     secretspacemanagermodule,
     secretstoremodule,
     securitymodule,

@@ -1,7 +1,7 @@
 ############################################################
 #region debug
 import { createLogFunctions } from "thingy-debug"
-{log, olog} = createLogFunctions("secrethandlermodule")
+{log, olog} = createLogFunctions("secretencryptionmodule")
 #endregion
 
 ############################################################
@@ -15,20 +15,27 @@ import * as security from "./securitymodule.js"
 #region exposedFunctions
 export getEncryptedSecretSpace = (keyHex) ->
     log "getEncryptedSecretSpace"
-    secretSpace = spaceManager.getSpaceFor(keyHex)
+    secretSpace = await spaceManager.getSpaceFor(keyHex)
     secretSpaceString = JSON.stringify(secretSpace)
     return await security.encrypt(secretSpaceString, keyHex) 
 
-export setSecretEncryptedly = (nodeId, secretId, secretPlain) ->
-    log "setSecretEncryptedly"
+export getEncryptedSubSpace = (keyHex, fromId) ->
+    log "getEncryptedSubSpace"
+    subSpace = await spaceManager.getSubSpaceFor(keyHex, fromId)
+    subSpaceString = JSON.stringify(subSpace)
+    return await security.encrypt(subSpaceString, keyHex) 
+
+############################################################
+export setEncryptedSecret = (nodeId, secretId, secretPlain) ->
+    log "setEncryptedSecret"
     ourSecret = await security.encrypt(secretPlain, nodeId)
-    spaceManager.setSecret(nodeId, secretId, ourSecret)
+    await spaceManager.setSecret(nodeId, secretId, ourSecret)
     return
 
-export shareSecretToEncryptedly = (fromId, shareToId, secretId, secretPlain) ->
-    log "shareSecretToEncryptedly"
+export shareEncryptedSecretTo = (fromId, shareToId, secretId, secretPlain) ->
+    log "shareEncryptedSecretTo"
     theirSecret = await security.encrypt(secretPlain, shareToId)
-    spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret)
+    await spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret)
     return
 
 #endregion

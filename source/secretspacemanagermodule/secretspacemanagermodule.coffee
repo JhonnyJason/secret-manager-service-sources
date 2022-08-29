@@ -37,7 +37,6 @@ class SecretSpace
         catch err then log("SecretSpace could not be saved: "+err.message)
         return
 
-
     ########################################################
     setSecret: (secretId, secret) ->
         await assertValidity(this)
@@ -45,15 +44,46 @@ class SecretSpace
         container = @secrets[secretId]
         container.secret = secret
         await @save()
+        return
 
     getSecret: (secretId) ->
+        await assertValidity(this)
+        container = @secrets[secretId]
+        throw new Error('Secret with secretId "'+secretId+ '" did not exist!') unless container?
+        return container.secret
+
+    deleteSecret: (secretId) ->
+        await assertValidity(this)
+        delete @secrets[secretId]
+        await @save()
+        return
+
+    ########################################################
+    addSubSpace: (fromId, closureDate) ->
+        await assertValidity(this)
+        if @subSpaces[fromId]? then return
+        subSpace = createNewSubSpace(fromId, closureDate, this)
+        @subSpaces[fromId] = subSpace.data
+        await @save()
+
+
+    getSubSpace: (fromId) ->
+        await assertValidity(this)
+        if !@subSpaces[fromId]? then throw new Error("There is no SubSpace for "+fromId)
+        return @subSpaces[fromId]
+
+class SubSpace
+    constructor: (@data, @parentSpace) ->
+        @meta = @data.meta
+        @secrets = @data.secrets
+        @id = @meta.id
 
 
 ############################################################
 loadSpace = (id) ->
     data = dataCache.load(id)
     olog data
-    if !data.meta? or !data.secrets? or !data.subSpaces? then throw new Error("SecretSpace for "+id+" did not exist!")
+    if !data.meta? or !data.secrets? or !data.subSpaces? then throw new Error('SecretSpace for "'+id+'" did not exist!')
     return new SecretSpace(data)
 
 createNewSpace = (id, closureDate, owner) ->
@@ -66,6 +96,14 @@ createNewSpace = (id, closureDate, owner) ->
     data.subSpaces = {}
     return new SecretSpace(data)
 
+createNewSubSpace = (fromId, closureDate, parentSpace) ->
+    data = {}
+    logTo = ""
+    id = parentSpace.id+"."+fromId
+    data.meta = {id, closureDate, logTo}
+    data.secrets = {}
+    return new SubSpace(data, parentSpace)
+
 
 ############################################################
 assertValidity = (secretSpace) ->
@@ -76,7 +114,6 @@ assertValidity = (secretSpace) ->
 ############################################################
 #region exposed functions
 export createSpaceFor = (nodeId, closureDate, owner) ->
-    log "createSpaceFor"
     throw new Error("No nodeId provided!") unless nodeId
     
     try loadedSpace = loadSpace(nodeId)
@@ -88,44 +125,107 @@ export createSpaceFor = (nodeId, closureDate, owner) ->
         if owner?
             loadedSpace.meta.owner = owner
             loadedSpace.save()
-    else 
+    else
         newSpace = createNewSpace(nodeId, closureDate, owner)    
         await newSpace.save()        
     return
 
+export getSpaceFor = (nodeId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    secretSpace = loadSpace(nodeId)
+    await assertValidity(secretSpace)
+    return secretSpace.data
+
 export removeSpaceFor = (nodeId) ->
-    log "removeSpaceFor"
     throw new Error("No nodeId provided!") unless nodeId
     dataCache.remove(nodeId)
     return
 
 ############################################################
-export getSpaceFor = (nodeId) ->
-    log "getSpaceFor"
-    throw new Error("No nodeId provided!") unless nodeId
-    secretSpace = loadSpace(nodeId)
-    return secretSpace.data
-
-############################################################
 export setSecret = (nodeId, secretId, secret) ->
     throw new Error("No nodeId provided!") unless nodeId
-    throw new Error("No secretId provided!") unless secretId?
-    # throw new Error("cannot set shared secret here!") if isShared(secretId)
+    throw new Error("No secretId provided!") unless secretId
     secretSpace = loadSpace(nodeId)
-    await assertValidity(secretSpace)
     await secretSpace.setSecret(secretId, secret)
     ## maybe we can skip await here
     return
 
 export getSecret = (nodeId, secretId) ->
     throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No secretId provided!") unless secretId
+    secretSpace = loadSpace(nodeId)
+    return await secretSpace.getSecret(secretId)
+
+export deleteSecret = (nodeId, secretId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No secretId provided!") unless secretId
+    secretSpace = loadSpace(nodeId)
+    await secretSpace.deleteSecret(secretId)
+    return
+
+############################################################
+export addSubSpaceFor = (nodeId, fromId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No fromId provided!") unless fromId
+    secretSpace
     ## TODO
-    # throw new Error("No secretId provided!") unless secretId?
-    # secretSpace = new SecretSpace(nodeId)
-    # if isShared(secretId) then return getSharedSecret(secretSpace, secretId)
-    # else
-    #     throw new Error("Secret with secretId does not exist!") unless secretSpace[secretId]?
-    #     container = secretSpace[secretId]
-    #     return container.secret
+    # secretSpace = state.load(nodeId)
+    # return if secretSpace[fromId]?
+    # secretSpace[fromId] = {}
+    # state.save(nodeId)
+    # return
+
+export getSubSpaceFor = (nodeId, fromId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No fromId provided!") unless fromId
+    secretSpace = loadSpace(nodeId)
+    return await secretSpace.getSubSpace(fromId)
+
+export removeSubSpaceFor = (nodeId, fromId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No fromId provided!") unless fromId
+    ## TODO
+    # secretSpace = state.load(nodeId)
+    # return unless secretSpace[fromId]?
+    # delete secretSpace[fromId]
+    # state.save(nodeId)
+    # return
+
+############################################################
+export setSharedSecret = (nodeId, fromId, secretId, secret) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No fromId provided!") unless fromId
+    throw new Error("No secretId provided!") unless secretId
+    ## TODO
+    # secretSpace = state.load(nodeId)
+    # throw new Error("No secrets accepted!") unless secretSpace[fromId]?
+    # subSpace = secretSpace[fromId]
+    # subSpace[secretId] = secret
+    # state.save(nodeId)
+    # return
+
+export getSharedSecret = (nodeId, fromId, secretId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No fromId provided!") unless fromId
+    throw new Error("No secretId provided!") unless secretId
+    ## TODO
+    # secretSpace = state.load(nodeId)
+    # throw new Error("No secrets accepted!") unless secretSpace[fromId]?
+    # subSpace = secretSpace[fromId]
+    # subSpace[secretId] = secret
+    # state.save(nodeId)
+    # return
+
+export deleteSharedSecret = (nodeId, fromId, secretId) ->
+    throw new Error("No nodeId provided!") unless nodeId
+    throw new Error("No fromId provided!") unless fromId
+    throw new Error("No secretId provided!") unless secretId
+    ## TODO
+    # secretSpace = state.load(nodeId)
+    # throw new Error("no secrets accepted from fromId!") unless secretSpace[fromId]?
+    # subSpace = secretSpace[fromId]
+    # delete subSpace[secretId]
+    # state.save(nodeId)
+    # return
 
 #endregion
