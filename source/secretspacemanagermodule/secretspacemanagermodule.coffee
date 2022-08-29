@@ -87,6 +87,7 @@ loadSpace = (id) ->
     return new SecretSpace(data)
 
 createNewSpace = (id, closureDate, owner) ->
+    # if !closureDate? then closureDate = null
     data = {}
     serverPub = serviceCrypto.getPublicKeyHex()
     logTo = ""
@@ -97,6 +98,7 @@ createNewSpace = (id, closureDate, owner) ->
     return new SecretSpace(data)
 
 createNewSubSpace = (fromId, closureDate, parentSpace) ->
+    # if !closureDate? then closureDate = null
     data = {}
     logTo = ""
     id = parentSpace.id+"."+fromId
@@ -124,7 +126,7 @@ export createSpaceFor = (nodeId, closureDate, owner) ->
         if closureDate? and closureDate != loadedSpace.meta.closureDate then throw new Error("Updating the closureDate is not allowed!")
         if owner?
             loadedSpace.meta.owner = owner
-            loadedSpace.save()
+            await loadedSpace.save()
     else
         newSpace = createNewSpace(nodeId, closureDate, owner)    
         await newSpace.save()        
@@ -164,16 +166,13 @@ export deleteSecret = (nodeId, secretId) ->
     return
 
 ############################################################
-export addSubSpaceFor = (nodeId, fromId) ->
+export addSubSpaceFor = (nodeId, fromId, closureDate) ->
     throw new Error("No nodeId provided!") unless nodeId
     throw new Error("No fromId provided!") unless fromId
-    secretSpace
-    ## TODO
-    # secretSpace = state.load(nodeId)
-    # return if secretSpace[fromId]?
-    # secretSpace[fromId] = {}
-    # state.save(nodeId)
-    # return
+    olog {nodeId, fromId, closureDate}
+    secretSpace = loadSpace(nodeId)
+    await secretSpace.addSubSpace(fromId, closureDate)
+    return
 
 export getSubSpaceFor = (nodeId, fromId) ->
     throw new Error("No nodeId provided!") unless nodeId
