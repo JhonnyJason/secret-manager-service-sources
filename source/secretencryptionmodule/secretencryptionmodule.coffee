@@ -32,10 +32,10 @@ export setEncryptedSecret = (nodeId, secretId, secretPlain) ->
     await spaceManager.setSecret(nodeId, secretId, ourSecret)
     return
 
-export shareEncryptedSecretTo = (fromId, shareToId, secretId, secretPlain) ->
+export shareEncryptedSecretTo = (fromId, shareToId, secretId, secretPlain, isOneTime) ->
     log "shareEncryptedSecretTo"
     theirSecret = await security.encrypt(secretPlain, shareToId)
-    await spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret)
+    await spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret, isOneTime)
     return
 
 #endregion

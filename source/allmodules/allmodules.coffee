@@ -2,6 +2,7 @@ import * as authcodemodule from "./authcodemodule.js"
 import * as blocksignaturesmodule from "./blocksignaturesmodule.js"
 import * as configmodule from "./configmodule.js"
 import * as debugmodule from "./debugmodule.js"
+import * as notificationhooksmodule from "./notificationhooksmodule.js"
 import * as scimodule from "./scimodule.js"
 import * as secretencryptionmodule from "./secretencryptionmodule.js"
 import * as secretspacemanagermodule from "./secretspacemanagermodule.js"
@@ -16,6 +17,7 @@ Modules = {
     blocksignaturesmodule,
     configmodule,
     debugmodule,
+    notificationhooksmodule,
     scimodule,
     secretencryptionmodule,
     secretspacemanagermodule,

@@ -5,6 +5,7 @@ export modulesToDebug =
     unbreaker: true
     # blocksignaturesmodule: true
     # configmodule: true
+    notificationhooksmodule: true
     # persistentstatemodule: true
     scimodule: true
     # secretencryptionmodule: true
