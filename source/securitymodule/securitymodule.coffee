@@ -14,7 +14,12 @@ import * as blocker from "./blocksignaturesmodule.js"
 #region exposedFunctions
 export authenticateRequest = (req, res, next) ->
     log "authenticate"
-    
+
+    # log req.path
+    # severe pfush :-(
+    switch req.path
+        when "/getNodeId" then return next()
+
     data = req.body
     idHex = data.publicKey
     sigHex = data.signature

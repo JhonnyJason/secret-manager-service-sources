@@ -11,7 +11,7 @@ export modulesToDebug =
     # secretencryptionmodule: true
     # secretstoremodule: true
     secretspacemanagermodule: true
-    # securitymodule: true
+    securitymodule: true
     # servicekeysmodule: true
     startupmodule: true
     

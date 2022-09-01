@@ -8,6 +8,8 @@ import { createLogFunctions } from "thingy-debug"
 import * as cachedData from "cached-persistentstate"
 import * as secUtl from "secret-manager-crypto-utils"
 
+import * as validatableStamp from "./validatabletimestampmodule.js"
+
 ############################################################
 serviceState = null
 
@@ -39,4 +41,12 @@ export sign = (content) ->
 export verify = (sigHex, content) ->
     pubHex = serviceState.publicKeyHex
     result = await secUtl.verifyHex(sigHex, pubHex, content)
+    return result
+
+export getSignedNodeId = ->
+    result = {}
+    result.serverNodeId = serviceState.publicKeyHex
+    result.timestamp = validatableStamp.create()
+    content = JSON.stringify(result)
+    result.signature = await sign(content)
     return result
