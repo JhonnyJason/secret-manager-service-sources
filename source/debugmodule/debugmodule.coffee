@@ -4,14 +4,15 @@ import { addModulesToDebug } from "thingy-debug"
 export modulesToDebug = 
     unbreaker: true
     # blocksignaturesmodule: true
+    closuredatemodule: true
     # configmodule: true
-    notificationhooksmodule: true
+    # notificationhooksmodule: true
     # persistentstatemodule: true
     scimodule: true
     # secretencryptionmodule: true
     # secretstoremodule: true
     secretspacemanagermodule: true
-    securitymodule: true
+    # securitymodule: true
     # servicekeysmodule: true
     startupmodule: true
     

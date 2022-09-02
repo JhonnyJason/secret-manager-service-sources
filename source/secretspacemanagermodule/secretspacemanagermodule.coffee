@@ -7,11 +7,22 @@ import { createLogFunctions } from "thingy-debug"
 ############################################################
 #region imports
 import * as dataCache from "cached-persistentstate"
+import * as closureManager from "./closuredatemodule.js"
 import * as serviceCrypto from "./servicekeysmodule.js"
 import * as notificationHooks from "./notificationhooksmodule.js"
 
+
+############################################################
+import {CustomError} from "./customerrormodule.js"
+
 ############################################################
 import nodeCrypto from "crypto"
+
+#endregion
+
+############################################################
+#region ErrorObjects
+class SpecialError extends CustomError 
 
 #endregion
 
@@ -78,6 +89,11 @@ class SecretSpace
     getSubSpace: (fromId) ->
         await assertValidity(this)
         if !@subSpaces[fromId]? then throw new Error('There is no SubSpace for "'+fromId+'"')
+        stillExists = closureManager.check(@subSpaces[fromId].meta)
+        if !stillExists
+            delete @subSpaces[fromId]
+            await @save()
+            throw new Error('There is no SubSpace for "'+fromId+'"')
         return @subSpaces[fromId]
 
     removeSubSpace: (fromId) ->
@@ -211,12 +227,15 @@ class SubSpace
         @parentSpace.save()
         return
 
-
 ############################################################
 loadSpace = (id) ->
     data = dataCache.load(id)
     olog data
     if !data.meta? or !data.secrets? or !data.subSpaces? then throw new Error('SecretSpace for "'+id+'" did not exist!')
+    stillExists = closureManager.check(data.meta)
+    if !stillExists
+        dataCache.remove(id)
+        throw new Error('SecretSpace for "'+id+'" did not exist!')
     return new SecretSpace(data)
 
 createNewSpace = (id, closureDate, owner) ->
@@ -258,8 +277,10 @@ export createSpaceFor = (nodeId, closureDate, owner) ->
             loadedSpace.meta.owner = owner
             await loadedSpace.save()
     else
-        newSpace = createNewSpace(nodeId, closureDate, owner)    
-        await newSpace.save()        
+        newSpace = createNewSpace(nodeId, closureDate, owner)
+        stillExists = closureManager.check(newSpace.meta)
+        if stillExists then await newSpace.save()
+        else throw new Error("ClosureDate has already passed!")        
     return
 
 export getSpaceFor = (nodeId) ->
@@ -269,7 +290,7 @@ export getSpaceFor = (nodeId) ->
     notificationHooks.notify(secretSpace.meta.notificationHooks, "getSecretSpace")
     return secretSpace.data
 
-export removeSpaceFor = (nodeId) ->
+export deleteSpaceFor = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
     ## For now we donot throw an error on removal of nonexisting Spaces
     # loadSpace(nodeId) # throws an error if it does not exist
@@ -314,7 +335,7 @@ export getSubSpaceFor = (nodeId, fromId) ->
     secretSpace = loadSpace(nodeId)
     return await secretSpace.getSubSpace(fromId)
 
-export removeSubSpaceFor = (nodeId, fromId) ->
+export deleteSubSpaceFor = (nodeId, fromId) ->
     throw new Error("No nodeId provided!") unless nodeId
     throw new Error("No fromId provided!") unless fromId
     secretSpace = loadSpace(nodeId)
