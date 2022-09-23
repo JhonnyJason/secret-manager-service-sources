@@ -24,7 +24,7 @@ export initialize = ->
         serviceState.secretKeyHex = kp.secretKeyHex
         serviceState.publicKeyHex = kp.publicKeyHex
         cachedData.save("serviceState")
-
+    
     # olog serviceState
     return
 

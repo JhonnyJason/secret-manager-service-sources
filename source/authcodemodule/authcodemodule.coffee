@@ -41,10 +41,17 @@ export assertActionIsLegal = (action, authCode) ->
     ## TODO implement
     return 
 
+
 ############################################################
 export getOwner = (owner) ->
     log "getOwner"
     log "Not implemented yet!"
     ## TOOD implement
     return ""
+
+export processRequest = (req) ->
+    action = req.path.slice(1)
+    authCode = req.body.authCode
+    ##TODO implement
+    return
 

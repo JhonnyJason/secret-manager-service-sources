@@ -9,7 +9,6 @@ import * as notificationhooksmodule from "./notificationhooksmodule.js"
 import * as scimodule from "./scimodule.js"
 import * as secretencryptionmodule from "./secretencryptionmodule.js"
 import * as secretspacemanagermodule from "./secretspacemanagermodule.js"
-import * as securitymodule from "./securitymodule.js"
 import * as servicekeysmodule from "./servicekeysmodule.js"
 import * as startupmodule from "./startupmodule.js"
 import * as validatabletimestampmodule from "./validatabletimestampmodule.js"
@@ -26,7 +25,6 @@ Modules = {
     scimodule,
     secretencryptionmodule,
     secretspacemanagermodule,
-    securitymodule,
     servicekeysmodule,
     startupmodule,
     validatabletimestampmodule,
