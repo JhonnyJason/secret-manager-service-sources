@@ -60,3 +60,12 @@ export notify = (ids, action) ->
     ##TODO implement
     # for id in ids
     return
+
+############################################################
+export notifyForRequest = (req) ->
+    log "notifyForRequest"
+    log req.path
+    return
+
+export initialCheck = (id) ->
+    return

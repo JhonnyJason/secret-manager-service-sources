@@ -4,8 +4,10 @@ import { createLogFunctions } from "thingy-debug"
 {log, olog} = createLogFunctions("closuredatemodule")
 #endregion
 
+
 ############################################################
-import  * as cfg from "./configmodule.js"
+import * as spaceManager from "./secretspacemanagermodule.js"
+import * as cfg from "./configmodule.js"
 
 ############################################################
 intervalMS = 30000
@@ -33,9 +35,10 @@ closureHeartbeat = ->
 
 close = (toBeClosed) ->
     log "close"
+    return unless idHasClosure[toBeClosed.id]
     idTokens = toBeClosed.id.split(".")
-    if idTokens.length == 1 then spaceManager.deleteSpaceFor(idTokens[0])
-    if idTokens.length == 2 then spaceManager.deleteSubSpaceFor(idTokens[0], idTokens[1])
+    if idTokens.length == 1 then return spaceManager.deleteSpaceFor(idTokens[0])
+    if idTokens.length == 2 then return spaceManager.deleteSubSpaceFor(idTokens[0], idTokens[1])
     throw new Error("id of toBeClosed space was of unexpectedFormat!")
     return
 

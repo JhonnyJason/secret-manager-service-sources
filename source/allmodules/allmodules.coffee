@@ -1,4 +1,5 @@
 import * as authcodemodule from "./authcodemodule.js"
+import * as authenticationmodule from "./authenticationmodule.js"
 import * as blocksignaturesmodule from "./blocksignaturesmodule.js"
 import * as closuredatemodule from "./closuredatemodule.js"
 import * as configmodule from "./configmodule.js"
@@ -15,6 +16,7 @@ import * as validatabletimestampmodule from "./validatabletimestampmodule.js"
 
 Modules = {
     authcodemodule,
+    authenticationmodule,
     blocksignaturesmodule,
     closuredatemodule,
     configmodule,

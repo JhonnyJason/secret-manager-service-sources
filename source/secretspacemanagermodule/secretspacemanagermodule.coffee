@@ -13,7 +13,7 @@ import * as notificationHooks from "./notificationhooksmodule.js"
 
 
 ############################################################
-import {CustomError} from "./customerrormodule.js"
+import { CustomError } from "./customerrormodule.js"
 
 ############################################################
 import nodeCrypto from "crypto"
@@ -293,8 +293,10 @@ export getSpaceFor = (nodeId) ->
 export deleteSpaceFor = (nodeId) ->
     throw new Error("No nodeId provided!") unless nodeId
     ## For now we donot throw an error on removal of nonexisting Spaces
-    # loadSpace(nodeId) # throws an error if it does not exist
-    notificationHooks.notify(secretSpace.meta.notificationHooks, "deleteSecretSpace")
+    try
+        secretSpace = loadSpace(nodeId) # throws an error if it does not exist
+        notificationHooks.notify(secretSpace.meta.notificationHooks, "deleteSecretSpace")
+    catch err then log err
     dataCache.remove(nodeId)
     return
 
