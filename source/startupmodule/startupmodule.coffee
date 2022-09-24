@@ -10,12 +10,15 @@ import * as cachedData from "cached-persistentstate"
 
 ############################################################
 import * as sci from "./scimodule.js"
-import { persistentStateOptions } from "./configmodule.js"
+import * as cfg from "./configmodule.js"
 import * as defaultstate from "./defaultstate.js"
-persistentStateOptions.defaultstate = defaultstate
 
 ############################################################
-cachedData.initialize(persistentStateOptions)
+cfg.readConfig()
+cfg.persistentStateOptions.defaultstate = defaultstate
+
+############################################################
+cachedData.initialize(cfg.persistentStateOptions)
 
 ############################################################
 export serviceStartup = ->

@@ -1,8 +1,9 @@
 import { addModulesToDebug } from "thingy-debug"
 
 ############################################################
-export modulesToDebug = 
-    unbreaker: true
+export modulesToDebug = {
+    authcodemodule: true
+    authenticationmodule: true
     # blocksignaturesmodule: true
     closuredatemodule: true
     # configmodule: true
@@ -15,5 +16,6 @@ export modulesToDebug =
     # securitymodule: true
     # servicekeysmodule: true
     startupmodule: true
+}
     
 addModulesToDebug(modulesToDebug)

@@ -11,37 +11,14 @@ import * as authCodeManager from "./authcodemodule.js"
 import * as blocker from "./blocksignaturesmodule.js"
 
 ############################################################
-specialAuth = {}
-specialAuth["/getNodeId"] = authCodeOnly
-specialAuth
-defaultAuth = signatureOnly
-
-############################################################
-export initialize = ->
-    log "initialize"
-    #Implement or Remove :-)
-    return
-
-############################################################
-#region exposedFunctions
-export authenticateRequest = (req) ->
-    log "authenticateRequest"
-
-    try switch req.path
-        when "/getNodeId" then await authCodeOnly(req)
-        when "/openSecretSpace" then await authCodeAndSignature(req)
-        else await defaultAuth(rew)
-    catch err then throw new Error("Error on authenticateRequest! #{err.message}")
-
-    return
-
-
-
+#region internalFunctions
 authCodeOnly = (req) ->
+    log "authCodeOnly"
     await authCodeManager.processRequest(req)
     return
 
-signatuerOnly = (req) ->
+signatureOnly = (req) ->
+    log "signatureOnly"
     data = req.body
     idHex = data.publicKey
     sigHex = data.signature
@@ -69,9 +46,27 @@ signatuerOnly = (req) ->
     return
 
 authCodeAndSignature = (req) ->
-    await signatuerOnly(req)
-    await authCodeOnly(req)
+    log "authCodeAndSignature"
+    await Promise.all([signatureOnly(req), authCodeOnly(req)])
     return
+
+#endregion
+
+############################################################
+export authenticateRequest = (req) ->
+    log "authenticateRequest"
+    log req.path
+    try switch req.path
+        when "/getNodeId" then await authCodeOnly(req)
+        when "/openSecretSpace" then await authCodeAndSignature(req)
+        else await signatureOnly(req)
+    catch err then throw new Error("Error on authenticateRequest! #{err.message}")
+    return
+
+
+
+
+
 
 
 

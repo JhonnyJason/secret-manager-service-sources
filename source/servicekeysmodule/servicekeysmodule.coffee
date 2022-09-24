@@ -12,6 +12,7 @@ import * as validatableStamp from "./validatabletimestampmodule.js"
 
 ############################################################
 serviceState = null
+godKeyHex = null
 
 ############################################################
 export initialize = ->
@@ -29,6 +30,9 @@ export initialize = ->
     return
 
 ############################################################
+export isNotGod = (keyHex) -> return keyHex != godKeyHex
+
+############################################################
 export getPublicKeyHex = -> serviceState.publicKeyHex
 
 ############################################################
@@ -43,6 +47,7 @@ export verify = (sigHex, content) ->
     result = await secUtl.verifyHex(sigHex, pubHex, content)
     return result
 
+############################################################
 export getSignedNodeId = ->
     result = {}
     result.serverNodeId = serviceState.publicKeyHex
