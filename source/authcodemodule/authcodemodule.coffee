@@ -95,5 +95,6 @@ export processRequest = (req) ->
         if serviceCrypto.isNotGod(authObj.creator) then req.body.owner = authObj.creator
         #when it is not a public authCode then we only use it once - thus delete it here
         delete authCodeStore.authCodes[authCode]
+        signAndSaveAuthCodeStore()
     return
 

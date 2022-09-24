@@ -22,6 +22,7 @@ export readConfig = ->
         if c.persistentStateOptions? then persistentStateOptions = c.persistentStateOptions
         if c.validationTimeFrameMS? then validationTimeFrameMS = c.validationTimeFrameMS
         if c.closureHeartbeatIntervalMS? then closureHeartbeatIntervalMS = c.closureHeartbeatIntervalMS
+        if c.godKeyHex? then godKeyHex = c.godKeyHex
     catch err then log("Error when reading config file: #{err.message}") 
     return
 
@@ -36,3 +37,4 @@ export validationTimeFrameMS = 10000
 export closureHeartbeatIntervalMS = 60000
 export initialGetNodeIdAuthCode = "deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe"
 export initialOpenSecretSpaceAuthCode = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+export godKeyHex = ""
