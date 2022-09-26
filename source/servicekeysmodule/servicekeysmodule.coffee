@@ -15,6 +15,10 @@ serviceState = null
 godKeyHex = null
 
 ############################################################
+setReady = null
+ready = new Promise (resolve) -> setReady = resolve 
+
+############################################################
 export initialize = ->
     log "initialize"
     serviceState = cachedData.load("serviceState")
@@ -27,6 +31,7 @@ export initialize = ->
         cachedData.save("serviceState")
     
     # olog serviceState
+    setReady(true)
     return
 
 ############################################################
@@ -37,18 +42,21 @@ export getPublicKeyHex = -> serviceState.publicKeyHex
 
 ############################################################
 export sign = (content) ->
+    await ready
     keyHex = serviceState.secretKeyHex
     signatureHex = await secUtl.createSignatureHex(content, keyHex)
     return signatureHex
 
 ############################################################
 export verify = (sigHex, content) ->
+    await ready
     pubHex = serviceState.publicKeyHex
     result = await secUtl.verifyHex(sigHex, pubHex, content)
     return result
 
 ############################################################
 export getSignedNodeId = ->
+    await ready
     result = {}
     result.serverNodeId = serviceState.publicKeyHex
     result.timestamp = validatableStamp.create()

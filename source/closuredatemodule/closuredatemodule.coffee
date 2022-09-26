@@ -60,7 +60,7 @@ addClosure = (toBeClosed) ->
 
 
 ############################################################
-export check = (spaceMeta) ->
+export checkIfOpen = (spaceMeta) ->
     return true if !spaceMeta.closureDate?
     date = spaceMeta.closureDate
     now = Date.now()

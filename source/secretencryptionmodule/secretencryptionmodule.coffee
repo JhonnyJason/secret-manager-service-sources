@@ -23,29 +23,29 @@ encrypt = (content, keyHex) ->
     
 ############################################################
 #region exposedFunctions
-export getEncryptedSecretSpace = (keyHex) ->
+export getEncryptedSecretSpace = (keyHex, enIds) ->
     log "getEncryptedSecretSpace"
-    secretSpace = await spaceManager.getSpaceFor(keyHex)
+    secretSpace = await spaceManager.getSpaceFor(keyHex, enIds)
     secretSpaceString = JSON.stringify(secretSpace)
     return await encrypt(secretSpaceString, keyHex) 
 
-export getEncryptedSubSpace = (keyHex, fromId) ->
+export getEncryptedSubSpace = (keyHex, fromId, enIds) ->
     log "getEncryptedSubSpace"
-    subSpace = await spaceManager.getSubSpaceFor(keyHex, fromId)
+    subSpace = await spaceManager.getSubSpaceFor(keyHex, fromId, enIds)
     subSpaceString = JSON.stringify(subSpace)
     return await encrypt(subSpaceString, keyHex) 
 
 ############################################################
-export setEncryptedSecret = (nodeId, secretId, secretPlain) ->
+export setEncryptedSecret = (nodeId, secretId, secretPlain, enIds) ->
     log "setEncryptedSecret"
     ourSecret = await encrypt(secretPlain, nodeId)
-    await spaceManager.setSecret(nodeId, secretId, ourSecret)
+    await spaceManager.setSecret(nodeId, secretId, ourSecret, enIds)
     return
 
-export shareEncryptedSecretTo = (fromId, shareToId, secretId, secretPlain, isOneTime) ->
+export shareEncryptedSecretTo = (fromId, shareToId, secretId, secretPlain, isOneTime, enIds) ->
     log "shareEncryptedSecretTo"
     theirSecret = await encrypt(secretPlain, shareToId)
-    await spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret, isOneTime)
+    await spaceManager.setSharedSecret(shareToId, fromId, secretId, theirSecret, isOneTime, enIds)
     return
 
 #endregion

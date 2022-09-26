@@ -30,7 +30,9 @@ export initialize = ->
 #region internalFunctions
 
 setPublicAuthCode = (action, authCode) ->
-    return unless action? and authCode?
+    return unless action and authCode
+    return unless authCode.length and authCode.length == 64
+
     if authCodeStore.publicAuthCodeActions[action]? 
         oldCode = authCodeStore.publicAuthCodeActions[action]
         delete authCodeStore.authCodes[oldCode]
