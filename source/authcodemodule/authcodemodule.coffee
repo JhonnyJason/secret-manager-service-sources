@@ -17,7 +17,7 @@ authCodeStore = null
 export initialize = ->
     log "initialize"
     authCodeStore = dataCache.load("authCodeStore")
-    if authCodeStore.meta? then validateAuthCodeStore()
+    if authCodeStore.meta? then await validateAuthCodeStore()
     else 
         authCodeStore.meta = {}
         authCodeStore.authCodes = {}

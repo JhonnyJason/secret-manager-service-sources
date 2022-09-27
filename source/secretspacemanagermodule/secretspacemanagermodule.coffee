@@ -124,6 +124,15 @@ class SecretSpace
         if !container.notificationHooks? then return []
         return container.notificationHooks
 
+    getAllNotificationHooks: ->
+        result = []
+        result.push(...@getNotificationHooks())
+        for secretId of @data.secrets
+            result.push(...@getNotificationHooksFromSecret(secretId))
+        for subSpaceId,d of @data.subSpaces
+            subSpace = new SubSpace(d, this)
+            result.push(...subSpace.getAllNotificationHooks())
+        return result
 
     ########################################################
     deleteNotificationHook: (notificationHookId) ->
@@ -195,6 +204,12 @@ class SubSpace
         if !container.notificationHooks? then return []
         return container.notificationHooks
 
+    getAllNotificationHooks: ->
+        result = []
+        result.push(...@getNotificationHooks())
+        for secretId of @data.secrets
+            result.push(...@getNotificationHooksFromSecret(secretId))
+        return result
 
     ########################################################
     deleteNotificationHook: (notificationHookId) ->
@@ -280,12 +295,16 @@ export getSpaceFor = (nodeId, enIds) ->
     enIds.push(...secretSpace.getNotificationHooks())
     return secretSpace.data
 
-export deleteSpaceFor = (nodeId, enIds) ->
+export deleteSpaceFor = (nodeId, enIds, dnIds) ->
     throw new Error("No nodeId provided!") unless nodeId
     ## For now we donot throw an error on removal of nonexisting Spaces
     try
-        secretSpace = loadSpace(nodeId) # throws an error if it does not exist
+        data = dataCache.load(nodeId)
+        if !data.meta? or !data.secrets? or !data.subSpaces? then throw new Error('SecretSpace for "'+nodeId+'" did not exist!')
+        secretSpace = new SecretSpace(data)
         enIds.push(...secretSpace.getNotificationHooks())
+        dnIds.push(...secretSpace.getAllNotificationHooks())
+        # olog {enIds, dnIds}
     catch err then log err
     dataCache.remove(nodeId)
     return
@@ -308,12 +327,13 @@ export getSecret = (nodeId, secretId, enIds) ->
     enIds.push(...secretSpace.getNotificationHooksFromSecret(secretId))
     return await secretSpace.getSecret(secretId)
 
-export deleteSecret = (nodeId, secretId, enIds) ->
+export deleteSecret = (nodeId, secretId, enIds, dnIds) ->
     throw new Error("No nodeId provided!") unless nodeId
     throw new Error("No secretId provided!") unless secretId
     secretSpace = await loadValidSpace(nodeId)
     enIds.push(...secretSpace.getNotificationHooks())
     enIds.push(...secretSpace.getNotificationHooksFromSecret(secretId))
+    dnIds.push(...secretSpace.getNotificationHooksFromSecret(secretId))
     await secretSpace.deleteSecret(secretId)
     return
 
@@ -337,7 +357,7 @@ export getSubSpaceFor = (nodeId, fromId, enIds) ->
     enIds.push(...subSpace.getNotificationHooks())
     return await secretSpace.getSubSpace(fromId)
 
-export deleteSubSpaceFor = (nodeId, fromId, enIds) ->
+export deleteSubSpaceFor = (nodeId, fromId, enIds, dnIds) ->
     throw new Error("No nodeId provided!") unless nodeId
     throw new Error("No fromId provided!") unless fromId
     secretSpace = await loadValidSpace(nodeId)
@@ -345,6 +365,8 @@ export deleteSubSpaceFor = (nodeId, fromId, enIds) ->
     subSpaceData = await secretSpace.getSubSpace(fromId)
     subSpace = new SubSpace(subSpaceData, secretSpace)
     enIds.push(...subSpace.getNotificationHooks())
+    dnIds.push(...subSpace.getAllNotificationHooks())
+    # olog {enIds, dnIds}
     await secretSpace.removeSubSpace(fromId)
     return
 
@@ -374,7 +396,7 @@ export getSharedSecret = (nodeId, fromId, secretId, enIds) ->
     enIds.push(...subSpace.getNotificationHooksFromSecret(secretId))
     return subSpace.getSecret(secretId)
 
-export deleteSharedSecret = (nodeId, fromId, secretId, enIds) ->
+export deleteSharedSecret = (nodeId, fromId, secretId, enIds, dnIds) ->
     throw new Error("No nodeId provided!") unless nodeId
     throw new Error("No fromId provided!") unless fromId
     throw new Error("No secretId provided!") unless secretId
@@ -384,6 +406,7 @@ export deleteSharedSecret = (nodeId, fromId, secretId, enIds) ->
     subSpace = new SubSpace(subSpaceData, secretSpace)
     enIds.push(...subSpace.getNotificationHooks())
     enIds.push(...subSpace.getNotificationHooksFromSecret(secretId))
+    dnIds.puhs(...subSpace.getNotificationHooksFromSecret(secretId))
     await subSpace.deleteSecret(secretId)
     return
 

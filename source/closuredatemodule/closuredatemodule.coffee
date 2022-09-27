@@ -6,6 +6,7 @@ import { createLogFunctions } from "thingy-debug"
 
 
 ############################################################
+import * as notificationHandler from "./notificationhooksmodule.js"
 import * as spaceManager from "./secretspacemanagermodule.js"
 import * as cfg from "./configmodule.js"
 
@@ -36,10 +37,28 @@ closureHeartbeat = ->
 close = (toBeClosed) ->
     log "close"
     return unless idHasClosure[toBeClosed.id]
+    enIds = [] # execute notification Ids
+    dnIds = [] # delete notification Ids
+    event = "event onDelete"
+    meta = {source: "closuredatemodule.close"}
+    response = true
+
     idTokens = toBeClosed.id.split(".")
-    if idTokens.length == 1 then return spaceManager.deleteSpaceFor(idTokens[0])
-    if idTokens.length == 2 then return spaceManager.deleteSubSpaceFor(idTokens[0], idTokens[1])
-    throw new Error("id of toBeClosed space was of unexpectedFormat!")
+    try
+        if idTokens.length == 1
+            await spaceManager.deleteSpaceFor(idTokens[0], enIds, dnIds)
+            p1 = notificationHandler.notifyForEvent(event, meta, enIds)
+            p2 = notificationHandler.notifyForLogging(event, meta, enIds)
+            await Promise.all([p1, p2])
+            notificationHandler.remove(dnIds)
+        else if idTokens.length == 2
+            await spaceManager.deleteSubSpaceFor(idTokens[0], idTokens[1], enIds, dnIds)
+            p1 = notificationHandler.notifyForEvent(event, meta, enIds)
+            p2 = notificationHandler.notifyForLogging(event, meta, enIds)
+            await Promise.all([p1, p2])
+            notificationHandler.remove(dnIds)
+        else throw new Error("id of toBeClosed space was of unexpectedFormat!")
+    catch err then log "Error when trying to close #{toBeClosed.id} - #{err.message}"
     return
 
 addClosure = (toBeClosed) ->
