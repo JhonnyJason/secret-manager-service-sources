@@ -100,11 +100,10 @@ doNotificationRequest = (url, type, event, meta) ->
 
 ############################################################
 notify = (obj, event, meta) ->
-    obj.lastNotification = {time: Date.now()}
-    try
-        await doNotificationRequest(obj.notifyURL, obj.type, event, meta)
-        obj.lastNotification.error = null
-    catch err then obj.lastNotification.error = err.message
+    newNotification = {time: Date.now(), error: null}
+    try await doNotificationRequest(obj.notifyURL, obj.type, event, meta)
+    catch err then newNotification.error = err.message
+    obj.lastNotification = newNotification
     return
 
 ############################################################

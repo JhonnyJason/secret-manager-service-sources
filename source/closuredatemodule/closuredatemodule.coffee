@@ -7,38 +7,78 @@ import { createLogFunctions } from "thingy-debug"
 
 ############################################################
 import * as notificationHandler from "./notificationhooksmodule.js"
+import * as serviceCrypto from "./servicekeysmodule.js"
 import * as spaceManager from "./secretspacemanagermodule.js"
+import * as dataCache from "cached-persistentstate"
 import * as cfg from "./configmodule.js"
 
 ############################################################
 intervalMS = 30000
 
 ############################################################
-closures = []
-idHasClosure = {}
+closureStore = null
+closures = null
+idHasClosure = null
 
 ############################################################
 export initialize = ->
     log "initialize"
+    closureStore = dataCache.load("closureStore")
+    if closureStore.meta? then await validateClosureStore()
+    else
+        closureStore.meta = {}
+        closureStore.closures = []
+        closureStore.idHasClosure = {}
+    closures = closureStore.closures
+    idHasClosure = closureStore.idHasClosure
+
     if cfg.closureHeartbeatIntervalMS? then intervalMS = cfg.closureHeartbeatIntervalMS 
     setInterval(closureHeartbeat, intervalMS)
     return
+
+############################################################
+validateClosureStore = ->
+    log "validateClosureStore"
+    meta = closureStore.meta
+    signature = meta.serverSig
+    if !signature then throw new Error("No signature in closureStore.meta !")
+    meta.serverSig = ""
+    jsonString = JSON.stringify(closureStore)
+    meta.serverSig = signature
+    if(await serviceCrypto.verify(signature, jsonString)) then return
+    else throw new Error("Invalid Signature in closureStore.meta !")
+
+signAndSaveClosureStore = ->
+    log "signAndSaveClosureStore"
+    closureStore.meta.serverSig = ""
+    closureStore.meta.serverPub = serviceCrypto.getPublicKeyHex()
+    jsonString = JSON.stringify(closureStore)
+    signature = await serviceCrypto.sign(jsonString)
+    closureStore.meta.serverSig = signature
+    dataCache.save("closureStore")
+    return
+
 
 ############################################################
 closureHeartbeat = ->
     log "closureHeartbeat"
     now = Date.now()
     log "@"+now
-    while closures.length > 0 and closures[0].date < now
+    olog closures
+    lengthBefore = closures.length
+    while closures.length > 0 and closures[0].date <= now
         toBeClosed = closures.shift()
-        close(toBeClosed) 
+        close(toBeClosed)
+    lengthAfter = closures.length
+    if lengthAfter != lengthBefore then signAndSaveClosureStore()
     return
 
 close = (toBeClosed) ->
     log "close"
     return unless idHasClosure[toBeClosed.id]
-    enIds = [] # execute notification Ids
-    dnIds = [] # delete notification Ids
+    delete idHasClosure[toBeClosed.id] 
+    enIds = [] # execute closure Ids
+    dnIds = [] # delete closure Ids
     event = "event onDelete"
     meta = {source: "closuredatemodule.close"}
     response = true
@@ -63,16 +103,23 @@ close = (toBeClosed) ->
 
 addClosure = (toBeClosed) ->
     log "addClosure"
+    # olog closures
     idHasClosure[toBeClosed.id] = true
     if closures.length == 0 then closures.push(toBeClosed)
     else
-        closures = []
+        newClosures = []
         notYetPositioned = true
         for c in closures
             if notYetPositioned && c.date > toBeClosed.date
-                closures.push(toBeClosed)
+                newClosures.push(toBeClosed)
                 notYetPositioned = false
-            closures.push(c)
+            newClosures.push(c)
+        if notYetPositioned then newClosures.push(toBeClosed)
+        closures = newClosures
+        closureStore.closures = closures
+    # log "- - - -  after adding closure - - - - "
+    # olog closures
+    signAndSaveClosureStore()
     return
 
 # closureCompare = (el1, el2) -> el1.date - el2.date
@@ -83,7 +130,10 @@ export checkIfOpen = (spaceMeta) ->
     return true if !spaceMeta.closureDate?
     date = spaceMeta.closureDate
     now = Date.now()
-    if date <= now then return false    
+    if date <= now
+        closureHeartbeat()
+        return false    
     id = spaceMeta.id
     addClosure({date, id}) unless idHasClosure[id]
     return true
+    

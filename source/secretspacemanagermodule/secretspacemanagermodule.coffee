@@ -75,18 +75,19 @@ class SecretSpace
 
     ########################################################
     createSubSpace: (fromId, closureDate) ->
+        log "SecretSpace.createSubSpace"
         if @subSpaces[fromId]? then return
         subSpace = createNewSubSpace(fromId, closureDate, this)
-        @subSpaces[fromId] = subSpace.data
-        await @save()
-
+        stillExists = closureManager.checkIfOpen(subSpace.meta)
+        if stillExists
+            @subSpaces[fromId] = subSpace.data
+            await @save()
+        else throw new Error("ClosureDate has already passed!")
+        
     getSubSpace: (fromId) ->
         if !@subSpaces[fromId]? then throw new Error('There is no SubSpace for "'+fromId+'"')
         stillExists = closureManager.checkIfOpen(@subSpaces[fromId].meta)
-        if !stillExists
-            delete @subSpaces[fromId]
-            await @save()
-            throw new Error('There is no SubSpace for "'+fromId+'"')
+        if !stillExists then throw new Error('There is no SubSpace for "'+fromId+'"')
         return @subSpaces[fromId]
 
     removeSubSpace: (fromId) ->
@@ -231,12 +232,10 @@ class SubSpace
 ############################################################
 loadSpace = (id) ->
     data = dataCache.load(id)
-    olog data
+    # olog data
     if !data.meta? or !data.secrets? or !data.subSpaces? then throw new Error('SecretSpace for "'+id+'" did not exist!')
     stillExists = closureManager.checkIfOpen(data.meta)
-    if !stillExists
-        dataCache.remove(id)
-        throw new Error('SecretSpace for "'+id+'" did not exist!')
+    if !stillExists then throw new Error('SecretSpace for "'+id+'" did not exist!')
     return new SecretSpace(data)
 
 loadValidSpace = (id) ->
