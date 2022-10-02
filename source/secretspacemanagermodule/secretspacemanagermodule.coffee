@@ -361,7 +361,9 @@ export deleteSubSpaceFor = (nodeId, fromId, enIds, dnIds) ->
     throw new Error("No fromId provided!") unless fromId
     secretSpace = await loadValidSpace(nodeId)
     enIds.push(...secretSpace.getNotificationHooks())
-    subSpaceData = await secretSpace.getSubSpace(fromId)
+    # subSpaceData = await secretSpace.getSubSpace(fromId)
+    subSpaceData = secretSpace.subSpaces[fromId]
+    if !subSpaceData? then throw new Error('There is no SubSpace for "'+fromId+'"')
     subSpace = new SubSpace(subSpaceData, secretSpace)
     enIds.push(...subSpace.getNotificationHooks())
     dnIds.push(...subSpace.getAllNotificationHooks())
