@@ -3,16 +3,16 @@ import { addModulesToDebug } from "thingy-debug"
 ############################################################
 export modulesToDebug = {
     # authcodemodule: true
-    # authenticationmodule: true
+    authenticationmodule: true
     # blocksignaturesmodule: true
-    closuredatemodule: true
+    # closuredatemodule: true
     # configmodule: true
     # notificationhooksmodule: true
     # persistentstatemodule: true
     # scimodule: true
     # secretencryptionmodule: true
     # secretstoremodule: true
-    secretspacemanagermodule: true
+    # secretspacemanagermodule: true
     # securitymodule: true
     # servicekeysmodule: true
     # startupmodule: true

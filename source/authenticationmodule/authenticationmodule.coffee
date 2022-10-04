@@ -60,7 +60,9 @@ export authenticateRequest = (req) ->
         when "/getNodeId" then await authCodeOnly(req)
         when "/openSecretSpace" then await authCodeAndSignature(req)
         else await signatureOnly(req)
-    catch err then throw new Error("Error on authenticateRequest! #{err.message}")
+    catch err 
+        log  "Error on authenticateRequest! #{err.message}"
+        throw new Error("Error on authenticateRequest! #{err.message}")
     return
 
 
