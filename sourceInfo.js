@@ -3,7 +3,8 @@ module.exports = {
         return {
             "cached-persistentstate": "^0.0.1",
             "secret-manager-crypto-utils": "^0.1.1",
-            "thingy-sci-base": "^0.0.4"
+            "thingy-sci-base": "^0.0.7",
+            "thingy-network-base": "^0.0.3"
         }
     }
 }
