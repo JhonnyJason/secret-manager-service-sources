@@ -33,7 +33,7 @@ export persistentStateOptions = {
     maxCacheSize: 128
 }
 
-export validationTimeFrameMS = 10000
+export validationTimeFrameMS = 180000
 export closureHeartbeatIntervalMS = 60000
 export initialGetNodeIdAuthCode = "deadbeefcafebabedeadbeefcafebabedeadbeefcafebabedeadbeefcafebabe"
 export initialOpenSecretSpaceAuthCode = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
